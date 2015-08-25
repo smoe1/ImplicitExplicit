@@ -1,0 +1,25 @@
+# A makefile that uses this file is expected to include this file
+# after putting one of the following lines:
+#include $(DOGPACK)/lib/Makefile.defs
+#include $(DOGPACK)/lib/1d/Makefile.defs
+#include $(DOGPACK)/lib/2d/Makefile.defs
+
+# where this library lives
+POISSON1D_LIB = $(DOGPACK)/apps/1d/Poisson/lib
+# what this library inherits from
+POISSON1D_INCLUDE = -I$(POISSON1D_LIB) $(LIB1D_INCLUDE)
+# inheriting libraries are expected to override this
+INCLUDE_LIBS = $(POISSON1D_INCLUDE)
+
+# place to add objects and sources
+#
+POISSON1D_LIB_OBJECTS = \
+  $(POISSON1D_LIB)/PoissonParams.o \
+  $(POISSON1D_LIB)/PoissonSolve.o \
+  $(POISSON1D_LIB)/ConvertBC.o \
+#
+POISSON1D_LIB_SOURCES = \
+  $(POISSON1D_LIB)/*.h \
+  $(POISSON1D_LIB)/PoissonParams.cpp \
+  $(POISSON1D_LIB)/PoissonSolve.cpp \
+  $(POISSON1D_LIB)/ConvertBC.cpp \

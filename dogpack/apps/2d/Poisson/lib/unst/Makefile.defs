@@ -1,0 +1,41 @@
+### definitions ###
+
+# overridden library objects
+#
+AuxFunc           = $(DOGPACK)/lib/2d/blanks/AuxFunc
+FluxFunc          = $(DOGPACK)/lib/2d/blanks/FluxFunc
+ProjectLeftEig    = $(DOGPACK)/lib/2d/blanks/ProjectLeftEig
+ProjectRightEig   = $(DOGPACK)/lib/2d/blanks/ProjectRightEig
+QinitFunc         = $(DOGPACK)/lib/2d/blanks/QinitFunc
+SetBndValues      = $(DOGPACK)/lib/2d/blanks/SetBndValues
+SetWaveSpd        = $(DOGPACK)/lib/2d/blanks/SetWaveSpd
+SourceTermFunc    = $(DOGPACK)/lib/2d/blanks/SourceTermFunc
+
+# Location of this lib:
+POISSON_2D_LIB_UNST = $(DOGPACK)/apps/2d/Poisson/lib/unst
+
+# 2D-unstructured library objects that are overwritten:
+RunDogpack_Unst       = $(POISSON_2D_LIB_UNST)/RunDogpack_Unst
+SetBndValues_Unst     = $(POISSON_2D_LIB_UNST)/SetBndValues_Unst
+
+# Additional default functions that users may wish to overwrite:
+#
+RhsFunc               = $(POISSON_2D_LIB_UNST)/RhsFunc
+
+POISSON_2D_LIB_UNST_OBJECTS = \
+  $(POISSON_2D_LIB_UNST)/PoissonSolver2D_unst.o \
+  $(POISSON_2D_LIB_UNST)/SparseCholesky.o \
+  $(POISSON_2D_LIB_UNST)/ComputeEfield.o \
+  $(POISSON_2D_LIB_UNST)/Rhs2D_unst.o \
+  $(POISSON_2D_LIB_UNST)/L2Project_DG2CG_Unst.o \
+  $(POISSON_2D_LIB_UNST)/RunMatlabCopyScript.o \
+  $(RhsFunc).o \
+
+POISSON_2D_LIB_UNST_SOURCES = \
+  $(POISSON_2D_LIB_UNST)/PoissonSolver2D_unst.cpp \
+  $(POISSON_2D_LIB_UNST)/SparseCholesky.cpp \
+  $(POISSON_2D_LIB_UNST)/ComputeEfield.cpp \
+  $(POISSON_2D_LIB_UNST)/Rhs2D_unst.cpp \
+  $(POISSON_2D_LIB_UNST)/L2Project_DG2CG_Unst.cpp \
+  $(POISSON_2D_LIB_UNST)/RunMatlabCopyScript.cpp \
+  $(RhsFunc).cpp \

@@ -1,0 +1,18 @@
+#SL_LIB   = $(SL_TOPLIB) -I$(DOGPACK)/apps/semi_lagrangian/lib/1d/
+
+# place to add objects and sources
+#
+SL_LIB_OBJECTS = \
+  $(SL_TOPLIB_OBJECTS) \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/StepAdvec.o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/StepAdvecNonCons.o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/StepAdvecFluxForm.o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/dg_cell.o \
+
+#
+SL_LIB_SOURCES = \
+  $(SL_TOPLIB_SOURCES) \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/StepAdvec.cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/StepAdvecNonCons.cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/StepAdvecFluxForm.cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/1d/dg_cell.cpp \

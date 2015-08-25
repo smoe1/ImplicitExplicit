@@ -1,0 +1,28 @@
+
+namespace PositivityReturnType
+{
+  enum Enum {
+    NEG_PRESSURE=-2,
+    NEG_DENSITY=-1,
+    UNDEFINED=0,
+    INTERVALS_CONFIRMED_POSITIVITY=1,
+    EVALUATIONS_CONFIRMED_POSITIVITY=2,
+    ENFORCED_POSITIVITY=3,
+  };
+};
+
+// a way to define read-only constants without polluting
+// the global namespace
+namespace LimiterParams
+{
+  inline double get_rho_epsilon()
+  {
+    return 1e-13;
+  }
+  inline double get_pressure_epsilon()
+  {
+    return 1e-13;
+  }
+}
+
+void ApplyPositivityLimiter(dTensorBC4& q);

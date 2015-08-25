@@ -1,0 +1,164 @@
+#ifndef DISCONTCELL_H
+#define DISCONTCELL_H
+
+#include <cmath>
+#include "dogdefs.h"
+#include "DogParams.h"
+#include "DogParamsCart2.h"
+
+// ----------------------------------------------------------------------------
+//  SPECIFICATION FILE (discontCell.h)
+//    This module describes one class representing a discontinuous cell.
+//
+// ----------------------------------------------------------------------------
+
+// Class representing a single Discontinuous Cell. Discontinuity may occur in
+// x or y direction. this is specified by parameter cell_type in the
+// constructor.
+class discontCellConstCoeff
+{
+ public:
+    
+	discontCellConstCoeff(int kmax, double, int discont_direction);
+	// Constructor
+	// POST: new discontinuous cell is created with width dx height dy 
+	// and kmax polynomials are used for the legendre expansions
+	
+//	discontCell(const discontCell& anotherdiscontCell);
+    // Copy constructor
+    // POST: New tensor created with contents same as anotherdiscontCell
+    
+    ~discontCellConstCoeff();
+    // Destructor
+    // POST: discontCell no longer exists
+
+	void project(const dTensor2& qlnew, const dTensor2& qrnew, 
+			   dTensor1& qnew);
+	// POST: returns weights for the projection of q onto the 
+	// legendre basis functions
+
+	void printspts() const;
+	// POST: Print information about the contents of the cell
+
+	void printphivals() const;
+	// POST: Print information about the contents of the cell
+
+	void printwgts() const;
+	// POST: Print information about the contents of the cell
+	
+	void printintPhi() const;
+	// POST: Print information about the contents of the cell
+	
+ private:
+
+	// private field members
+	int mpoints, mpoints1d, kmax, discont_direction;
+	double scut, width1, width2;
+	
+	dTensor1 *w1d, *x1d;	//gauss quad weights and points
+	dTensor2 *q1, *q2;		    //Legendre weights on left and right half of cell
+	
+	//q's values on left and right half of cell evaluated at each quadrature
+	// point
+	dTensor1 *qvals1, *qvals2;
+	
+	dTensor4 *intPhi;   // integrated polynomials
+
+    // private methods:
+	void setGaussPoints();
+	void setPhi();
+	inline double evalPhi(const int&, const double&, const double&); 
+	
+};//end of class block
+
+// ----------------------------------------------------------------------------
+//  SPECIFICATION FILE (discontCell.h)
+//    This module describes one class representing a discontinuous cell.
+//
+// ----------------------------------------------------------------------------
+
+// Class representing a single Discontinuous Cell. 
+// Integration for computing legendre coeffecients is broken up into stages
+// determined by which direction discontinuity the cut occurs in.
+class discontCell
+{
+public:
+	
+	discontCell(int kmax, int discont_direction);
+	// Constructor
+	// POST: new discontinuous cell is created with width dx height dy 
+	// and kmax polynomials are used for the legendre expansions
+	
+    ~discontCell();
+	// Destructor
+	// POST: discontCell no longer exists
+	
+    void setScut(const dTensor1& initscut );
+
+    void set_xpts(dTensor1* xc_vec, dTensor1* dx_vec, dTensor2* xpts);
+    // POST: get quadrature points centered at xc_vec with dx, dy from dx_vec
+
+    void project(const dTensor2& qlnew, const dTensor2& qrnew, 
+                       dTensor1& qnew);
+	// POST: returns weights for the projection of q onto the 
+	// legendre basis functions
+
+	void project_source(const dTensor2& psi, dTensor2& psi_new);
+	// POST: returns weights for the projection of source term.
+	
+	void project_source_w_time(const dTensor3& psi, dTensor2& psi_new);
+	// POST: returns weights for the projection of source term.
+
+    void printphivals() const;
+    // POST: Print information about the contents of the cell
+	
+    void printintPhi() const;
+    // POST: Print information about the contents of the cell
+	
+    void printwgts() const;
+    // POST: Print information about the contents of the cell
+	
+    dTensor1* get_x1d();
+    dTensor1* get_w1d();
+    dTensor2* get_spts();
+    dTensor2* get_limited_spts();
+    dTensor1* get_limited_wgt();
+
+    void setGaussPoints(
+        const double& xc, const double& yc, dTensor2* xpts);
+    // POST: Set the gaussian quadrature weights and points
+
+private:
+		
+    // private field members
+		
+	int mpoints, mpoints1d, kmax, discont_direction, Kpts;
+	dTensor1 *width1, *width2;
+	dTensor1 *scut;  //location of discontinuity
+	
+    // Gaussian quadrature points.  spts(2*mpoints1d^2, 2) //
+  	dTensor2 *spts;
+
+    // points that are used for the positivity preserving limiter //
+  	dTensor2 *limited_spts;
+  	dTensor1 *limited_wgt;
+
+	dTensor1 *w1d, *x1d, *wgt;	//gauss quad weights and points
+	dTensor2 *q1, *q2;		//Legendre weights on left and right half of cell
+	
+	//q's values on left and right half of cell evaluated at each quadrature
+	// point
+    dTensor1 *qvals1, *qvals2;
+    dTensor4 *intPhi;   // integrated polynomials
+
+    // private methods:
+    void setGaussPoints();
+    void setPhi();
+    double evalPhi(const int&, const double&, const double&); 
+    void setqValues();
+
+    void set_limited_spts();
+	
+};//end of class block
+#endif
+// --------------------------------------------------------------------------

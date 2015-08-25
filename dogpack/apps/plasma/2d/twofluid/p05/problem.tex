@@ -1,0 +1,588 @@
+\documentclass[12pt,fleqn]{article}
+
+%\usepackage{graphicx}
+\usepackage{url}
+%\usepackage{verbatim}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{enumitem}
+%\usepackage{multicol}
+%\usepackage[tight]{subfigure}\subfigtopskip=0pt
+
+\numberwithin{equation}{section}
+%\numberwithin{figure}{section}
+
+\voffset=-1in
+\hoffset=-1in
+\topmargin=1.00in
+\oddsidemargin=1.25in
+\evensidemargin=1.25in
+\textwidth=6.5in
+\textheight=9.0in
+%% comment out the next two lines to save space
+\parskip=12pt
+\parindent=0pt
+\footskip=60pt
+\marginparsep=1cm
+\marginparwidth=1cm
+\headheight=0pt
+\headsep=0pt
+
+\pagestyle{empty}
+
+% This is supposed to select the Times New Roman font.
+\usepackage{pslatex}
+
+\setcounter{secnumdepth}{3}
+
+%\makeatletter
+%\def\section{\@startsection
+% {section}{1}{0mm}%   % name, level, indent
+% {-\baselineskip}%    % beforeskip
+% {0.5\baselineskip}%  % afterskip
+% {\bf}}%              %style
+%\def\subsection{\@startsection
+% {subsection}{2}{32pt}%% name, level, indent
+% {-0pt}%    % beforeskip
+% {-\baselineskip}%    % afterskip
+% {\bf}}%              %style
+%\def\subsubsection{\@startsection
+% {subsubsection}{3}{32pt}%% name, level, indent
+% {-0pt}%    % beforeskip
+% {-\baselineskip}%    % afterskip
+% {\itshape}}%              %style
+%\makeatother
+
+\begin{document}
+
+\noindent
+{\Large \bf Collisionless fast reconnection with an isotropic two-fluid model}
+
+The code in this directory solves 
+the Geospace Environmental Modeling Magnetic Reconnection
+Challenge Problem (alias ``GEM reconnection problem'') \cite{article:Birn01}
+using an isotropic two-fluid collisionless model.
+
+%\section{Background and context}
+
+\section{System of equations: isotropic two-fluid plasma}
+
+The code in this directory solves
+the collisionless five-moment two-fluid model,
+which models each species as an ideal gas
+coupled to Maxwell's equations.
+
+The nondimensionalized system of equations that
+we solve has the same form as the dimensional equations:
+\def\wh{\widehat}
+\def\pressure{p}
+\def\E{\mathbf{E}}
+\def\B{\mathbf{B}}
+\def\J{\mathbf{J}}
+\def\Div{\nabla\cdot}
+\def\curl{\nabla\times}
+\def\debyeLength{\lambda_D}
+%\def\gyroRadius{r_g}
+\def\gyrofrequency{\omega_g}
+\def\mdens{\rho}
+\def\u{\mathbf{u}}
+\def\gasenergy{\mathcal{E}}
+\def\idtens{\mathbb{I}}  % {\underline{\underline{\delta}}}
+\def\qdens{\sigma}
+\def\cc{{\chi}}%{{c_c}}
+\def\diminished{\color{cyan}}
+\def\emphasized{\color{blue}}
+\begin{gather*}
+ \partial_{\wh t}
+    \begin{bmatrix}
+      \wh\mdens_i \\
+      \wh\rho_i\wh\u_i \\
+      \wh\gasenergy_i \\
+      \wh\mdens_e \\
+      \wh\rho_e\wh\u_e \\
+      \wh\gasenergy_e \\
+    \end{bmatrix}
+   +
+   \wh \Div
+    \begin{bmatrix}
+      \wh\rho_i\wh\u_i \\
+      \wh\rho_i\wh\u_i\wh\u_i + \wh\pressure_i \, \idtens \\
+      \wh\u_i\bigl(\wh\gasenergy_i+\wh\pressure_i\bigr)\\
+      \wh\rho_e\wh\u_e \\
+      \wh\rho_e\wh\u_e\wh\u_e + \wh\pressure_e \, \idtens \\
+      \wh\u_e\bigl(\wh\gasenergy_e+\wh\pressure_e\bigr)\\
+    \end{bmatrix}
+ = %\wh\gyrofrequency %\frac{1}{\wh\gyroRadius}
+    \begin{bmatrix}
+      0 \\
+      \wh\qdens_i(\wh\E+\wh\u_i\times\wh\B)\\
+      \wh\qdens_i\wh\u_i\cdot\wh\E \\
+      0 \\
+      \wh\qdens_e(\wh\E+\wh\u_e\times\wh\B)\\
+      \wh\qdens_e\wh\u_e\cdot\wh\E \\
+    \end{bmatrix},
+ \\
+ \partial_{\wh t}
+    \begin{bmatrix}
+      \wh c\wh\B \\
+      \wh\E \\
+    \end{bmatrix}
+ + \wh c
+    \begin{bmatrix}
+      \wh\curl\wh\E{\diminished +\cc\nabla\psi} \\
+      -\wh\curl(\wh c\wh\B){\diminished + \cc\nabla(\wh c\phi)} \\
+    \end{bmatrix}
+ = \begin{bmatrix}
+      0 \\
+      -\wh\J/{\wh\epsilon} \\
+    \end{bmatrix}, \hbox{ and }
+ %\\
+ {\diminished
+ \partial_{\wh t}
+    \begin{bmatrix}
+      {\diminished\psi} \\
+      {\diminished \wh c\phi} \\
+    \end{bmatrix}
+ + \wh c
+ }
+    \begin{bmatrix}
+       {\diminished \cc{\emphasized \wh \Div(\wh c\wh\B)}} \\
+       {\diminished \cc{\emphasized \wh\Div\wh\E} } \\
+    \end{bmatrix}
+ = \begin{bmatrix}
+      {\emphasized 0} \\
+      {\diminished \wh c\cc{\emphasized \wh\qdens/\wh\epsilon}} \\
+    \end{bmatrix}.
+\end{gather*}
+Hats denote quantities that are rescaled or redefined
+in the nondimensionalization.
+The dimensional equations have the same appearance except that
+there are no hats.
+The quantities are defined as follows.
+Let $s\in\{i,e\}$ denote species index 
+($i$ for ion, $e$ for electron). Then
+$\rho_s$ is density,
+$\u_s$ is fluid velocity,
+$\gasenergy_s$ is gas-dynamic energy,
+$p_s$ is gas-dynamic scalar pressure,
+$\idtens$ is the identity tensor,
+$\E$ is electric field,
+$\B$ is magnetic field,
+$\sigma_s=\frac{q_s}{m_s}\rho_s$ is charge density,
+$q_s$ and $m_s$ are particle mass and charge,
+%$q_i=1$, $q_e=-1$, $m_i=1$, $m_e=\frac{m_e}{m_i}$,
+and
+$\J=\J_i+\J_e=\qdens_i\u_i+\qdens_e\u_e$ is current.
+The constitutive relation for the
+scalar pressure is given by
+$\gasenergy=(\alpha/2)p+(1/2)\mdens u^2$,
+where $\alpha$, the number of degrees of freedom
+per particle, equals 3.
+For the parameters,
+$c$ is the speed of light and
+$\epsilon$ is the electric permittivity.
+The quantities $\diminished\psi$ and $\diminished\phi$ are zero
+for physical solutions; they are included
+in the system to maintain
+the divergence constraints.  We choose
+$\diminished\chi$ to ensure that divergence error
+propagates at least as fast as the fastest physical
+waves in our system, in our case light waves.
+So $\diminished\chi$
+must be at least $1$; we have chosen $\diminished\chi=1.05$.
+
+In our nondimensionalization we take a typical
+angular gyroperiod as our time scale and
+a typical Alfv\'en speed as our velocity scale;
+then $1/\wh\epsilon=\wh c^2$.
+
+Specifically, to nondimensionalize
+we choose typical magnetic field strength $B_0$,
+particle density $n_0$, particle mass $m_0$
+(which we take to be the total mass of an ion plus an electron),
+charge $q_0$ (which we take to be the charge $e$ on a proton),
+and choose time scale
+$t_0=\frac{m_0}{q_0 B_0}$, the angular gyroperiod
+of a typical particle, and typical velocity
+$v_A = \frac{\mu_0 m_0 n_0}{B_0^2}$, a typical Alfv\'en speed.
+Then
+$\frac{1}{\wh\epsilon} = \frac{t_0 n_0 e}{B_0 \epsilon_0}
+   = \frac{\mu_0 m_0 n_0}{B_0^2} c^2
+   = \big(\frac{c}{v_A}\big)^2=\wh c^2$,
+where $\wh c$ denotes nondimensionalized light speed.
+
+Note that the ion pressure obeys the evolution equation
+$(d^{\u_i}_t)\pressure_i+\gamma(\nabla\cdot\u_i)\pressure_i=0$,
+where $(d^{\u_i}_t):=d_t+\u_i\cdot\nabla$
+is the convective derivative defined by $\u_i$,
+and $\gamma=\frac{\alpha+2}{\alpha}$.  Likewise for the
+electron pressure.  These pressures should remain positive.
+
+\section{Boundary and initial conditions; GEM reconnection challenge problem.}
+
+The Geospace Environmental Modeling magnetic reconnection
+challenge problem is a standard test problem to test whether
+a model admits fast reconnection.
+
+\subsection{Computational domain.}
+The computational domain is the rectangular domain
+$[-L_x/2,L_x/2]\times[-L_y/2,L_y/2]$,
+where $L_x=8\pi$ and $L_y=4\pi$.
+The problem is symmetric under reflection across
+either the horizontal or vertical axis.
+
+\subsection{Boundary conditions.}
+The domain is periodic in the $x$-axis.
+The boundaries perpendicular to the $y$-axis
+are thermally insulating conducting wall boundaries.  
+A conducting wall boundary is a solid wall boundary
+(with slip boundary conditions in the case of ideal plasma)
+for the fluid variables, and the electric field at
+the boundary has no component parallel to the boundary.
+Assuming the ideal MHD Ohm's law, this implies that
+at the conducting boundary the magnetic field must be parallel to 
+the boundary.  So at the conducting wall boundaries
+\begin{align*}
+ \\ \partial_y u_{x,s} &= 0,
+ &  \partial_y B_x &= 0,
+ &  E_x &= 0,
+ & \partial_y \rho_s &= 0,
+ %
+ %
+ \\ u_{y,s} &= 0,
+ &  B_y &= 0,
+ &  \partial_y E_y &= 0,
+ & \partial_y p_s &= 0,
+ %
+ \\ \partial_y u_{z,s} &= 0,
+ &  \partial_y B_z &= 0,
+ &  E_z &= 0,
+ & \partial_y \gasenergy_s &= 0.
+\end{align*}
+
+\subsection{Model Parameters.}
+In the GEM problem the model parameters are
+\begin{align*}
+   m_i/m_e &= 25,
+ & \mu_0 &= 1.
+\end{align*}
+
+Following the two-fluid simulations of
+\cite{article:Loverich05} and \cite{article:Hakim06},
+we choose a speed of light
+\begin{align*}
+  c = 10 B_0,
+\end{align*}
+i.e. 10 times the Alfv\`en speed.
+
+For our nondimensionalization parameters we assumed that
+the typical gyrofrequency and Alfv\'en speed are unity.
+
+\subsection{Initial conditions.}
+The initial conditions are a perturbed Harris sheet equilibrium.
+The unperturbed equilibrium is given by
+\def\e{\mathbf{e}}
+\def\B{\mathbf{B}}
+\def\E{\mathbf{E}}
+\def\J{\mathbf{J}}
+\def\sech{\,\mathrm{sech}}
+\begin{align*}
+    \B(y) & =B_0\tanh(y/\lambda)\e_x,
+  & p(y) &= \frac{B_0^2}{2 n_0} n(y),
+ \\ n(y) &= n_i(y) = n_e(y)
+            = n_0(1/5+\sech^2(y/\lambda)),
+  & p_e(y) &= p(y)/6,
+ \\ \E & =0,
+  & p_i(y) &= 5p(y)/6.
+\end{align*}
+
+On top of this the magnetic field is perturbed by
+\begin{align*}
+   \delta\B&=-\e_z\times\nabla(\psi), \hbox{ where}
+\\ \psi(x,y)&=\psi_0 \cos(2\pi x/L_x) \cos(\pi y/L_y).
+\end{align*}
+In the GEM problem the initial condition constants are
+\begin{align*}
+    \lambda&=0.5,
+  & B_0&=1,
+ \\ n_0&=1,
+  & \psi_0&=B_0/10.
+\end{align*}
+
+We remark that \cite{article:Hakim06} instead sets $B_0=0.1$
+(so that the speed of light will be unity when it
+is 10 times the Alfv\'en speed).
+His solution maps onto the GEM variables via
+\def\GEM{\mathrm{GEM}}
+\def\u{\mathbf{u}}
+\begin{align*}
+   \B&=.1\B_\GEM,
+ &  t&=10 t_\GEM,
+ &  p&=.01 p_\GEM,
+ & (\rho_s)=(\rho_s)_\GEM,
+\\ \E&=.01\E_\GEM,
+ & \u&=.1\u_\GEM,
+ & \gasenergy&=.01 \gasenergy_\GEM,
+\end{align*}
+and so forth.
+
+In his two-fluid simulations,
+\cite{article:Hakim06}, assumes that the
+initial current is carried only by the electrons
+and neglects the portion of the current caused by the
+initial perturbation:
+\begin{gather*}
+   \J_e = \curl \B = -\frac{B_0}{\lambda}\sech^2(y/\lambda) \e_z.
+\end{gather*}
+In the case of a mass ratio near unity and large perturbation,
+we prefer a more exact calculation of the initial velocities.
+
+We calculate the precise initial current:
+\begin{align*}
+     \J =& \curl (\B + \delta\B).
+%\\  \B  =& B_0\tanh(y/\lambda)\e_x.
+\\ \curl\B =& -\frac{B_0}{\lambda}\sech^2(y/\lambda) \e_z.
+%\\ \psi(x,y)=&\psi_0 \cos(2\pi x/L_x) \cos(\pi y/L_y).
+\\ \delta\B=&-\e_z\times\nabla \psi
+   =  \begin{bmatrix}
+        \partial_y \psi \\
+       -\partial_x \psi \\
+        0
+      \end{bmatrix}
+   =  \begin{bmatrix}
+        -\psi_0(\pi/L_y) \cos(2\pi x/L_x) \sin(\pi y/L_y)  \\
+         \psi_0(2\pi/L_x) \sin(2\pi x/L_x) \cos(\pi y/L_y) \\
+        0
+      \end{bmatrix}
+\\ \curl\delta\B =& -(\nabla^2\psi)\e_z
+       =  \psi_0 ((2\pi/L_x)^2+(\pi/L_y)^2) \cos(2\pi x/L_x) \cos(\pi y/L_y)\e_z.
+\\ \J =& (-\frac{B_0}{\lambda}\sech^2(y/\lambda) - \nabla^2 \psi) \e_z.
+\end{align*}
+From the current we calculate the initial species currents and
+velocities.  Assuming zero initial net momentum gives the system
+\begin{align*}
+  \J =& \J_i + \J_e, \\
+   0 =& m_i\J_i - m_e\J_e,
+\end{align*}
+whose solution is
+\begin{align*}
+  \J_i =& \frac{m_e}{m_i+m_e} \J, \\
+  \J_e =& \frac{m_i}{m_i+m_e} \J.
+\end{align*}
+So the initial momentum of each species is:
+\begin{align*}
+  \rho_i\u_i =& m_i \J_i/e = m \J/e, \\
+  \rho_e\u_e =& -m_e \J_i/e = -m \J/e,
+\end{align*}
+where
+$m = \frac{m_i m_e}{m_i+m_e}$ is the \emph{reduced mass}.
+
+\section{Symmetries for electron-positron plasma with equal temperatures.}
+
+In the special case of an electron-positron
+plasma with equal temperatures,
+we get complete symmetry between electrons and positrons
+and half the quantities are redundant or zero:
+\begin{align*}
+   \rho_i&=\rho_e, &\gasenergy_i &= \gasenergy_e, & p_i&=p_e,
+\\ \u_{i,1}&=  \u_{e,1},    &\J_1 &= 0,  &E_1 &= 0,
+\\ \u_{i,2}&=  \u_{e,2},    &\J_2 &= 0,  &E_2 &= 0,
+\\ \u_{i,3}&= -\u_{e,3},    &\u_3 &= 0,  &B_3 &= 0.
+\end{align*}
+So the state variables reduce to:
+\begin{align*}
+  \begin{bmatrix}
+     \hbox{idx} & \mathrm{var} & \hbox{old idx} & \hbox{old idx} & \hbox{old var}
+  \\ 1 & \rho_i        & 1  & 6 & \rho_e
+  \\ 2 & \u_{i,1}      & 2  & 7 & \u_{e,1}
+  \\ 3 & \u_{i,2}      & 3  & 8 & \u_{e,2}
+  \\ 4 & \u_{i,3}      & 4  & -9 & -\u_{e,3}
+  \\ 5 & \gasenergy_i, & 5  & 10 & \gasenergy_e
+  \\ 6 & B_1           & 11  & &
+  \\ 7 & B_2           & 12  & &
+  \\   & B_3           & 13  & &
+  \\   & E_1           & 14  & &
+  \\   & E_2           & 15  & &
+  \\ 8 & E_3           & 16  & &
+  \\ 9 & \psi          & 17  & &
+  \\   & \phi          & 18  & &
+  \end{bmatrix}
+\end{align*}
+In this case the terms of Ohm's law are zero
+{\em everywhere} for all components except the third:
+\def\m{\tilde m}
+\def\Pressure{\mathbb{P}}
+\begin{alignat*}{1}
+   \E_3 = (u_1 B_2 - B_2 u_1) + \eta J_3
+     &+ \frac{\m}{\rho}(\partial_{x_1}\Pressure_{1,3}+\partial_{x_2}\Pressure_{2,3})
+ \\
+     &+ \frac{\m^2}{\rho}
+         (\partial_{t} J_3 + \partial_{x_1}(u_1 J_3) + \partial_{x_2}(u_2 J_3)),
+\end{alignat*}
+where $\m$ is the positron mass to charge ratio.
+At the origin this simplifies to:
+\begin{gather*}
+   \E_3 = \eta J_3
+     + \frac{\m}{\rho}(\partial_{x_1}\Pressure_{1,3}+\partial_{x_2}\Pressure_{2,3})
+     + \frac{\m^2}{\rho} \partial_{t} J_3
+\end{gather*}
+
+\appendix
+
+\section{Nondimensionalization}
+
+A slightly more generic nondimensionalized system of equations than
+ours has essentially the same form as the dimensional equations:
+\def\wh{\widehat}
+\def\pressure{p}
+\def\E{\mathbf{E}}
+\def\B{\mathbf{B}}
+\def\J{\mathbf{J}}
+\def\Div{\nabla\cdot}
+\def\curl{\nabla\times}
+\def\debyeLength{\lambda_D}
+%\def\gyroRadius{r_g}
+\def\gyrofrequency{\omega_g}
+\def\mdens{\rho}
+\def\u{\mathbf{u}}
+\def\gasenergy{\mathcal{E}}
+\def\idtens{\mathbb{I}}  % {\underline{\underline{\delta}}}
+\def\qdens{\sigma}
+\begin{gather*}
+ \partial_{\wh t}
+    \begin{bmatrix}
+      \wh\mdens_i \\
+      \wh\mdens_e \\
+      \wh\rho_i\wh\u_i \\
+      \wh\rho_e\wh\u_e \\
+      \wh\gasenergy_i \\
+      \wh\gasenergy_e \\
+    \end{bmatrix}
+   +
+   \wh \Div
+    \begin{bmatrix}
+      \wh\rho_i\wh\u_i \\
+      \wh\rho_e\wh\u_e \\
+      \wh\rho_i\wh\u_i\wh\u_i + \wh\pressure_i \, \idtens \\
+      \wh\rho_e\wh\u_e\wh\u_e + \wh\pressure_e \, \idtens \\
+      \wh\u_i\bigl(\wh\gasenergy_i+\wh\pressure_i\bigr)\\
+      \wh\u_e\bigl(\wh\gasenergy_e+\wh\pressure_e\bigr)\\
+    \end{bmatrix}
+ = \wh\gyrofrequency %\frac{1}{\wh\gyroRadius}
+    \begin{bmatrix}
+      0 \\
+      0 \\
+      \wh\qdens_i(\wh\E+\wh\u_i\times\wh\B)\\
+      %-\frac{m_i}{m_e}
+      \wh\qdens_e(\wh\E+\wh\u_e\times\wh\B)\\
+      \wh\qdens_i\wh\u_i\cdot\wh\E \\
+      %-\frac{m_i}{m_e}
+      \wh\qdens_e\wh\u_e\cdot\wh\E \\
+    \end{bmatrix},
+ \\
+ \partial_{\wh t}
+    \begin{bmatrix}
+      \wh c\wh\B \\
+      \wh\E
+    \end{bmatrix}
+ + \wh c \wh \curl
+    \begin{bmatrix}
+      \wh\E \\
+      -\wh c\wh\B
+    \end{bmatrix}
+ = \begin{bmatrix}
+      0 \\
+      -\wh\J/{\wh\epsilon}
+    \end{bmatrix}, \hbox{ and }
+  \wh\nabla\cdot
+   \begin{bmatrix}
+     \wh c\wh\B \\
+     \wh\E
+   \end{bmatrix}
+ = \begin{bmatrix}
+     0 \\
+     \wh\qdens/\wh\epsilon
+   \end{bmatrix}.
+\end{gather*}
+
+To nondimensionalize we choose a typical particle
+density $n_0$, magnetic field strength $B_0$,
+time scale $t_0$, speed $u_0$, and particle mass $m_0$,
+and charge $q_0$.
+We then make the appropriate substitutions, e.g., 
+\begin{align*}
+  \rho &=\rho_0\wh\rho,
+ &\u   &=u_0\wh\u,
+ &\gasenergy &= \gasenergy_0\wh\gasenergy,
+ &\B &= B_0\wh\B,
+ &\J &= J_0\wh\J,
+\\
+  \sigma &= \sigma_0\wh\sigma,
+ &c    &=u_0\wh c,
+ &\pressure &= \pressure_0\wh\pressure,
+ &\E &= E_0\wh\E,
+\end{align*}
+where
+\begin{align*}
+  \rho_0 &= m_0 n_0,
+ &\sigma_0 &= q_0 n_0,
+ &\gasenergy_0 &= \rho_0 u_0^2 = \pressure_0,
+ &E_0 &= u_0 B_0,
+ &J_0 &= \sigma_0 n_0 u_0.
+\end{align*}
+We choose $m_0$ to be the mass of a protium
+(hydrogen) atom and $q_0=e$, the charge of a proton.
+
+For the three nondimensional parameters:
+$\gyrofrequency:=\frac{q_0 B_0}{m_0}$
+is a typical gyrofrequency and
+$\wh\gyrofrequency=t_0\gyrofrequency$.
+In the GEM problem the time
+scale $t_0$ is chosen so that $\wh\gyrofrequency=1$.
+
+$\frac{1}{\wh\epsilon} = \frac{t_0 n_0 e}{B_0 \epsilon_0}
+   = t_0 \frac{e B_0}{m_0} \frac{\mu_0 m_0 n_0}{B_0^2} c^2
+   = (t_0 w_g) \big(\frac{c}{v_A}\big)^2$
+serves as a pseudo-permittivity
+($\epsilon_0$ and $\mu_0$ are the permittivity 
+and permeability of free space, $c$ is the
+speed of light, and $v_A$ is a typical
+Alfv\'en speed).  In the GEM problem the typical
+velocity $u_0$ is chosen to be the Alfv\'en speed $v_A$
+so that $\frac{1}{\wh\epsilon} =\wh c^2$.
+
+\begin{thebibliography}{99}
+
+\bibitem[Birn01]{article:Birn01}
+    Birn, J., et al.,
+    \newblock {\em Geospace Environmental Modeling (GEM)
+      magnetic reconnection challenge},
+    J. Geophys. Res., 106(A3), 3715--3720, 2001.
+
+\bibitem[Dedner02]{article:Dedner02}
+    A. Dedner, F. Kemm, D. Kr\:oner, C.-D. Munz, 
+    T. Schnitzer, and M. Wesenberg,
+    {\em Hyperbolic divergence cleaning 
+    for the MHD equations},
+    Journal of Computational Physics {\bf 175}, 645--673 (2002).
+
+\bibitem[Hakim06]{article:Hakim06}
+     A. Hakim, J. Loverich, U. Shumlak,
+     \newblock \emph{A high resolution wave propagation scheme for
+       ideal two-fluid plasma equations},
+     \newblock Journal of Computational Physics, 219 (2006) 418-442.
+
+\bibitem[Loverich05]{article:Loverich05}
+    J. Loverich, A. Hakim, U. Shumlak,
+    \newblock {\em A discontinuous Galerkin
+    method for ideal two-fluid plasma equations,}
+    \newblock Preprint submitted
+    to Journal of Computational Physics, posted at
+    \url{http://www.john-loverich.com/Loverich-JCP-2005.pdf},
+    13 December 2005.
+
+\end{thebibliography}
+
+\end{document}

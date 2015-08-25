@@ -1,0 +1,77 @@
+##  This idea was copied from apps/2d/mhd/lib/Makefile.defs:
+SL_LIB        = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart
+SL_INCLUDE    = -I$(SL_LIB) $(LIB2D_INCLUDE)
+#INCLUDE_LIBS  = $(INCLUDE_LIBS) $(SL_INCLUDE)
+INCLUDE_LIBS  = $(SL_INCLUDE)
+
+# This section is used for all semi-lagrangian routines: it allows users to
+# select options based on whether or not to run the hybrid method, as well as
+# what time splitting method they would like to run (Yoshida vs. RK-Nystrom)
+
+# for some reason this doesn't work 
+# If ALL semi-Lagrangian routines use the same initapp, why do they need to
+# place it in their local makefile? (DS)
+#InitApp                     = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/Initapp
+
+### Location to place library objects - in case application makefiles wish to
+### override these
+SetAdvecSpeedExtra          = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/SetAdvecSpeedExtra
+IntegratePsi                = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/IntegratePsi
+InitSLState                 = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/InitSLState
+HybridSourceTermFunc1D      = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/HybridSourceTermFunc1D
+SourceTermFunc_extra        = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/SourceTermFunc_extra
+AfterSLFrame                = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/AfterSLFrame
+AfterFullSLTimeStep         = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/AfterFullSLTimeStep
+SLParams                    = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/SLParams
+
+
+# This is pasted here for the zero boundary condition problem ...
+StepAdvec                   = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/StepAdvec
+StepAdvecHybrid             = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/StepAdvecHybrid
+
+# The ONLY application that overrides this is 2d/advection/rotating_time_dep:
+SetAdvecSpeed               = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/SetAdvecSpeed
+SetAdvecSpeed_MOD           = $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/SetAdvecSpeed_MOD
+
+# Objects and sources
+#
+SL_LIB_OBJECTS = \
+  $(SL_TOPLIB_OBJECTS) \
+  $(IntegratePsi).o \
+  $(SetAdvecSpeed).o \
+  $(SetAdvecSpeed_MOD).o \
+  $(SetAdvecSpeedExtra).o \
+  $(SourceTermFunc_extra).o \
+  $(HybridSourceTermFunc1D).o \
+  $(InitSLState).o \
+  $(AfterSLFrame).o \
+  $(AfterFullSLTimeStep).o \
+  $(StepAdvec).o \
+  $(StepAdvecHybrid).o \
+  $(SLParams).o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/StepAdvec1D.o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/discontCell.o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/AddViscosity.o \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/RKSolve1D.o \
+ 
+
+#
+SL_LIB_SOURCES = \
+  $(SL_TOPLIB_SOURCES) \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/*.h \
+  $(IntegratePsi).cpp \
+  $(SetAdvecSpeed).cpp \
+  $(SetAdvecSpeed_MOD).cpp \
+  $(SetAdvecSpeedExtra).cpp \
+  $(SourceTermFunc_extra).cpp \
+  $(HybridSourceTermFunc1D).cpp \
+  $(InitSLState).cpp \
+  $(AfterSLFrame).cpp \
+  $(AfterFullSLTimeStep).cpp \
+  $(StepAdvec).cpp \
+  $(StepAdvecHybrid).cpp \
+  $(SLParams).cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/StepAdvec1D.cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/discontCell.cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/AddViscosity.cpp \
+  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/RKSolve1D.cpp \

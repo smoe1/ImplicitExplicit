@@ -1,0 +1,30 @@
+# To avoid the diamond problem of multiple inheritance
+# an application is expected to inherit from this
+# and from $(DOGPACK)/lib/sys
+#
+# So a makefile should include this file *after* including
+# $(DOGPACK)/lib/sys/Makefile.defs
+# (or the Makefile.defs in one of the libraries that inherits from it)
+
+# where this library lives
+PLASMA_LIB_SYS = $(DOGPACK)/apps/plasma/lib/sys
+
+# define inherited symbols
+#
+PLASMA_LIB_SYS_INCLUDE = -I$(PLASMA_LIB_SYS)
+#
+PLASMA_LIB_SYS_OBJECTS = \
+  $(PLASMA_LIB_SYS)/JTrootFinder.o \
+  $(PLASMA_LIB_SYS)/Polynomial.o \
+  $(PLASMA_LIB_SYS)/solve_cubic.o \
+#
+PLASMA_LIB_SYS_SOURCES = \
+  $(PLASMA_LIB_SYS)/*.h \
+  $(PLASMA_LIB_SYS)/*.c \
+  $(PLASMA_LIB_SYS)/*.cpp \
+
+# inheriting libraries and applications are expected to override these
+INCLUDE_LIBS= $(PLASMA_LIB_SYS_INCLUDE) $(LIB_SYS_INCLUDE)
+ALL_SOURCES = $(PLASMA_LIB_SYS_SOURCES) $(LIB_SYS_SOURCES)
+ALL_OBJECTS = $(PLASMA_LIB_SYS_OBJECTS) $(LIB_SYS_OBJECTS)
+

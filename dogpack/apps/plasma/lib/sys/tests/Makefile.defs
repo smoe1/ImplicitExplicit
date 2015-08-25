@@ -1,0 +1,22 @@
+
+POLYNOMIAL_SOURCES = \
+ $(PLASMA_LIB_SYS)/Polynomial.h \
+ $(PLASMA_LIB_SYS)/Polynomial.cpp \
+ $(PLASMA_LIB_SYS)/JTrootFinder.h \
+ $(PLASMA_LIB_SYS)/JTrootFinder.cpp \
+ $(PLASMA_LIB_SYS)/JTrootFinder.cpp \
+ $(PLASMA_LIB_SYS)/solve_cubic.c \
+ $(LIB_SYS)/assert.h \
+ $(LIB_SYS)/assert.cpp \
+ $(LIB_SYS)/debug.h \
+ $(LIB_SYS)/debug.cpp \
+ test_Polynomial.cpp
+
+POLYNOMIAL_OBJECTS = \
+ $(PLASMA_LIB_SYS)/Polynomial.o \
+ $(PLASMA_LIB_SYS)/JTrootFinder.o \
+ $(PLASMA_LIB_SYS)/solve_cubic.o \
+ $(LIB_SYS)/assert.o \
+ $(LIB_SYS)/debug.o \
+ test_Polynomial.o
+

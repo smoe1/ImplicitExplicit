@@ -1,0 +1,7 @@
+1.666666666666667       gamma %(adiabatic gas constant)
+1836.0			mass_ratio
+0.01			debye % debye length
+100.0			cs_light %speed of light
+1.0			larmor_radius
+-1.0                    ion_rlx_period %(0=instantaneously relax,neg=don't)
+-1.0                    elc_rlx_period %(0=instantaneously relax,neg=don't)

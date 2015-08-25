@@ -1,0 +1,23 @@
+
+SET_COMPILE_WITH_HDF5 = -D COMPILE_WITH_HDF5=$(COMPILE_WITH_HDF5)
+
+$(HDF5o): $(HDF5cpp)
+	$(LINK) $(FFLAGS) $(SET_COMPILE_WITH_HDF5) $(HDF5_INCLUDES) \
+	$(HDF5cpp) -o $(HDF5o)
+
+$(Output).o: $(Output).cpp
+	$(LINK) $(FFLAGS) $(SET_COMPILE_WITH_HDF5) \
+	$(Output).cpp -o $(Output).o
+
+cleanlib:
+	rm -f \
+	  $(DOGPACK)/lib/*.o \
+	  $(DOGPACK)/lib/2d/*.o \
+	  $(DOGPACK)/lib/2d/*/*.o \
+	  $(DOGPACK)/lib/2d/*/*/*.o \
+	  $(DOGPACK)/apps/semi_lagrangian/lib/2d/cart/*.o \
+
+run:
+	time ./dog.exe -o $(output)
+
+include $(DOGPACK)/lib/Makefile.targets

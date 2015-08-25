@@ -1,0 +1,468 @@
+#include <math.h>
+#include <iostream>
+#include <pthread.h>
+#include "dog_math.h"
+#include "dogdefs.h"
+#include "DogParams.h"
+#include "DogParamsCart2.h"
+#include "discontCell.h"
+#include "SLState.h"
+
+///////////////////////////////////////////////////////////////////////////////
+// Function for stepping advection equation:
+//
+//            q_t + u(y) q_x + v(x) q_y = 0 
+//
+// forward in time using an operator split method.  Time integration is
+// only performed in one direction - x or y.
+//
+// Parameters
+//
+// dt - time step taken in each equation
+// qold(mx,my,meqn,kmax) - q before translation
+// qnew - q after being translated and projected onto the legendre basis
+// advec_vel(mx, my, mpoints1d, 2) - advection velocity.
+// direction - direction for velocity to take place
+//			== 1: travel in x-direction (i.e. v = 0)
+//			== 2: travel in y-direction (i.e. u = 0)
+//
+//  u1(my, mpoints1d) = u(y) - the 1d gauss point values for speeds
+//  u2(mx, mpoints1d) = v(x) - the 1d gauss point values for speeds
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
+// Wrapper function to split StepAdvec into chunks
+void StepAdvec(const double& dt, 
+        dTensorBC4& qold, dTensorBC4& qnew, dTensorBC4& aux, 
+        const dTensorBC2& u1, const dTensorBC2& u2, int direction,
+        SL_state& sl_state)
+{
+    void StepAdvec1(int j_start, int j_end, const double& dt, 
+            dTensorBC4& qold, dTensorBC4& qnew,  
+            const dTensorBC2& u1, const dTensorBC2& u2, SL_state& sl_state);
+    void StepAdvec2(int i_start, int i_end, const double& dt, 
+            dTensorBC4& qold, dTensorBC4& qnew, 
+            const dTensorBC2& u1, const dTensorBC2& u2 );
+
+    //-local parameters -----------------------------------------------------//
+    const int mx   = qnew.getsize(1);
+    const int my   = qnew.getsize(2);
+
+    switch( direction )
+    {
+        case 1:
+
+            StepAdvec1(1, my, dt, qold, qnew, u1, u2, sl_state);
+            break;
+
+        case 2:
+
+            StepAdvec2(1, mx, dt, qold, qnew, u1, u2);
+            break;
+    }
+
+    void SetBndValues(dTensorBC4& q, dTensorBC4& aux);
+    SetBndValues(aux, qnew);
+
+}
+
+// this function can be run concurrently
+void StepAdvec1(int j_start, int j_end, const double& dt,
+        dTensorBC4& qold, dTensorBC4& qnew, 
+        const dTensorBC2& u1, const dTensorBC2& u2, SL_state &sl_state)
+{
+    //
+    //-local parameters -----------------------------------------------------//
+    const int mx   = qnew.getsize(1);
+    const int my   = qnew.getsize(2);
+    const int meqn = qnew.getsize(3);
+    const int kmax = qnew.getsize(4);
+    const int mbc  = qnew.getmbc();
+
+    // cell widths are uniform.  need only look at cell (1,1) for dx, dy
+    const double dx = dogParamsCart2.get_dx();
+    const double dy = dogParamsCart2.get_dy();
+
+    // centers of grid cell (1,1)
+    const double x1c = dogParamsCart2.get_xc(1);
+    const double y1c = dogParamsCart2.get_yc(1);
+
+    const int space_order = dogParams.get_space_order();
+    const int mpoints1d   = space_order;
+    //-----------------------------------------------------------------------//
+
+#pragma omp parallel for
+    for(int j=j_start; j<=j_end; j++)
+    {
+
+        /////////////// necessary terms for when using a source term //////////////
+        dTensor1 xc_vec(2);
+        dTensor1 dx_vec(2);
+        dTensor1 tpts ( mpoints1d );
+        dTensor2 xpts ( 2*mpoints1d*mpoints1d, 2 );
+        dTensor3 psi  ( 2*mpoints1d*mpoints1d, meqn, mpoints1d );
+        if( dogParams.get_source_term() > 0 )
+        {
+
+            discontCell* cell = new discontCell(kmax, 1);
+            dx_vec.set(1, dx );  
+            dx_vec.set(2, dy );  
+
+            // find the quadrature time points //
+            dTensor1* x1d = cell->get_x1d();
+            for( int n=1; n <= mpoints1d; n++ )
+            { tpts.set(n, 0.5*dt*x1d->get(n) + 0.5*(2.0*sl_state.t + dt) ); }
+            delete cell;
+        }
+        //-----------------------------------------------------------------------//
+
+        //legendre weight for "left/bottom" half of cell
+        dTensor2 qleft(mpoints1d, kmax);		
+
+        //legendre weights for "right/top" half of cell
+        dTensor2 qright(mpoints1d, kmax);
+
+        dTensor1 qcell(kmax);		//legendre weights for current cell
+        dTensor1 scut(mpoints1d);   //location of discontinuity
+        discontCell* cell = new discontCell(kmax, 1);
+
+        for(int me=1; me<= meqn; me++)
+        {
+            for(int n=1; n<= mpoints1d; n++)
+            {
+
+                double lg_cfl       = u1.get(j,n)*dt/dx;
+                int num_cell_shift  = (int)( floor(lg_cfl) );
+
+                //location of discontinuity (in [-1,1])
+                double scutx = 2.0 * ( lg_cfl - floor( lg_cfl ) ) - 1.0;
+                if( fabs(scutx - 1.0) < 1.0e-15 )
+                {
+                    scutx = -1.0;
+                    num_cell_shift++;
+                }
+if( j == 33 )
+{ printf("   scutx = %2.3e\n", scutx ); }
+
+                scut.set(n,scutx);
+            }
+
+            cell->setScut(scut);
+
+            // limit this entire 'row' if using the limiter:
+            if(dogParams.using_moment_limiter())
+            {
+
+                dTensor2* spts = cell->get_limited_spts();
+
+                // ---------------------------------------------------------- //
+                // sample basis at all points where we want to check solution //
+                // ---------------------------------------------------------- //
+                void SamplePhiAtPositivePoints(const int& space_order, 
+                        const dTensor2& spts, dTensor2& phi);
+                dTensor2 phi(spts->getsize(1), kmax);
+                SamplePhiAtPositivePoints(space_order, *spts, phi);
+                dTensor2 int_psi( spts->getsize(1), meqn );
+                int_psi.setall(0.);
+
+                for(int i=1; i<=mx; i++)
+                {
+
+                    ///////////////////////////////////////////
+                    // if a source term exists - we replace 
+                    //         min fn 
+                    // with
+                    //         min fn + \int psi
+                    //
+                    ///////////////////////////////////////////
+                    if( dogParams.get_source_term() > 0 )
+                    {
+                        // add in some more junk: \int_{tn}^tnp1 \psi(x(t),v,t)\ dt
+                        xc_vec.set(1, dogParamsCart2.get_xc(i) );  
+                        xc_vec.set(2, dogParamsCart2.get_yc(j) );
+
+                        dTensor2 limited_xpts( spts->getsize(1), spts->getsize(2) );
+                        cell->set_limited_xpts( &xc_vec, &dx_vec, &limited_xpts );
+
+                        // the third quantity in psi is for the number of points
+                        // used in the time integration.
+                        dTensor3 psi( spts->getsize(1), meqn, space_order );
+                        void IntegratePsiForward( double tn, const dTensor2 &xpts, 
+                                            const dTensor1 &tpts, dTensor3 &psi);
+                        IntegratePsiForward( sl_state.t, limited_xpts, tpts, psi );
+                        cell->integrate_psi_in_time( psi, int_psi );
+
+                    }
+
+                    // -------------------------------------------------------------- //
+                    // q_limited = Q1 + \theta ( q(xi,eta) - Q1 )                     //
+                    // where theta = min(1, |Q1| / |Q1-m|; m = min_{i} q(xi_i, eta_i) //
+                    // -------------------------------------------------------------- //
+                    double m = 0.0;
+                    double theta = 0.0;
+                    for(int mp=1; mp <= phi.getsize(1); mp++)
+                    {
+                        // evaluate q at spts(mp) //
+                        double qnow = 0.0;
+                        for( int k=1; k <= kmax; k++ )
+                        {
+                            qnow += qold.get(i,j,me,k) * phi.get(mp,k);
+                        }
+
+                        // note: for most computations, int_psi = 0 //
+                        m = Min(m, qnow + 0.5 * dt * int_psi.get(mp,me) );
+                    }
+
+                    const double eps = 1e-12;
+                    double Q1 = qold.get(i,j,me,1);
+
+                    if( fabs( Q1 - m ) < 1.0e-14 ) { theta = 0.0; }
+                    else{ theta = Min( 1.0, (Q1 - eps) / (Q1 - m) ); }
+
+                    // limit q //
+                    for( int k=2; k <= kmax; k++ )
+                    {
+                        qold.set(i,j,me,k, qold.get(i,j,me,k) * theta );
+                    }
+
+                }
+            }
+
+            for(int i=1; i<=mx; i++)
+            {
+                for( int n=1; n<= mpoints1d; n++)
+                {
+
+                    double speedx = u1.get(j,n);
+                    int num_cell_shift = (int)( floor(speedx*dt/dx) );
+
+                    /////////////////////////////////////////////////////
+                    // Set ql and qr
+                    /////////////////////////////////////////////////////
+                    //io = 'old' cell that provides data for current cell i
+                    int io = (int)(i - num_cell_shift);
+
+                    //periodic boundary conditions enforced here
+                    io = iMod((io-1),mx) + 1;	
+
+                    for(int k= 1; k<=kmax; k++)
+                    {
+
+                        qright.set(n, k, qold.get(io, j, me, k) );
+                        if( io - 1 == 0)
+                        {
+                            qleft.set(n, k, qold.get(mx, j, me, k) );
+                        }else
+                        {
+                            qleft.set(n, k, qold.get(io-1, j, me, k) );
+                        }
+                    }//end of loop over each polynomial
+
+                }
+
+                //create a discontinuous cell and project onto legendre basis
+                cell->project(qleft, qright, qcell);
+
+                //save legendre weights into qnew
+                for(int k=1; k<=kmax; k++)
+                {
+                    qnew.set(i,j, me, k, qcell.get(k));
+                }
+
+                // if a source term exists //
+                if( dogParams.get_source_term() > 0 )
+                {
+                    // add in some more junk: \int_{tn}^tnp1 \psi(x(t),v,t)\ dt
+                    xc_vec.set(1, dogParamsCart2.get_xc(i) );  
+                    xc_vec.set(2, dogParamsCart2.get_yc(j) );
+
+                    cell->set_xpts( &xc_vec, &dx_vec, &xpts );
+
+                    void IntegratePsiBackward( double tnew, const dTensor2 &xpts, 
+                                        const dTensor1 &tpts, dTensor3 &psi);
+                    IntegratePsiBackward( sl_state.t + dt, xpts, tpts, psi );
+
+                    dTensor2 qextra(meqn, kmax);
+                    cell->project_source_w_time( psi, qextra );
+
+                    //save legendre weights into qnew
+                    for(int k=1; k<=kmax; k++)
+                    {
+                        qnew.set(i,j,me,k, qnew.get(i,j,me,k) + 
+                                            0.5*dt*qextra.get(me, k));
+                    }
+
+                }
+
+
+            }
+        }
+
+        delete cell;
+
+    }
+
+}
+
+void StepAdvec2(int i_start, int i_end, const double& dt, 
+        dTensorBC4& qold, dTensorBC4& qnew, 
+        const dTensorBC2& u1, const dTensorBC2& u2)
+{
+
+    //-local parameters -----------------------------------------------------//
+    const int mx   = qnew.getsize(1);
+    const int my   = qnew.getsize(2);
+    const int meqn = qnew.getsize(3);
+    const int kmax = qnew.getsize(4);
+    const int mbc  = qnew.getmbc();
+
+    // cell widths are uniform.  need only look at cell (1,1)
+    const double dx = dogParamsCart2.get_dx();
+    const double dy = dogParamsCart2.get_dy();
+    const double x1c = dogParamsCart2.get_xc(1); // center of grid cell (1,1)
+    const double y1c = dogParamsCart2.get_yc(1);
+
+    const int space_order = dogParams.get_space_order();
+    const int mpoints1d   = space_order;
+    //-----------------------------------------------------------------------//
+
+    //loop over every cell
+#pragma omp parallel for
+    for(int i=i_start; i<=i_end; i++)
+    {
+
+        // Placed here because they need to be private to each thread -- //
+        discontCell* cell = new discontCell(kmax, 2);
+
+        dTensor1 qcell(kmax);		//legendre weights for current cell
+        dTensor1 scut(mpoints1d);   //location of discontinuity
+
+        //legendre weight for "left/bottom" half of cell
+        dTensor2 qleft(mpoints1d, kmax);		
+
+        //legendre weights for "right/top" half of cell
+        dTensor2 qright(mpoints1d, kmax);
+        ///////////////////////////////////////////////////////////////////
+
+        for(int me=1; me<= meqn; me++)
+        {
+            for( int n=1; n<= mpoints1d; n++)
+            {
+
+                double lg_cfl       = u2.get(i,n)*dt/dy;
+                int num_cell_shift  = (int)( floor(lg_cfl) );
+
+                //location of discontinuity (in [-1,1])
+                double scuty = 2.0 * ( lg_cfl - floor( lg_cfl ) ) - 1.0;
+                if( fabs(scuty - 1.0) < 1.0e-15 )
+                {
+                    scuty = -1.0;
+                    num_cell_shift++;
+                }
+
+                scut.set(n,scuty);
+
+            }
+
+            // this is the same for every collumn, and is an expensive
+            // call
+            cell->setScut(scut);
+
+            // limit this entire 'collumn' if using the limiter:
+            if(dogParams.using_moment_limiter())
+            {
+
+                dTensor2* spts = cell->get_limited_spts();
+                // ---------------------------------------------------------- //
+                // sample basis at all points where we want to check solution //
+                // ---------------------------------------------------------- //
+                void SamplePhiAtPositivePoints(const int& space_order, 
+                        const dTensor2& spts, dTensor2& phi);
+                dTensor2 phi(spts->getsize(1), kmax);
+                SamplePhiAtPositivePoints(space_order, *spts, phi);
+
+                for(int j=1; j<=my; j++)
+                {
+                    // -------------------------------------------------------------- //
+                    // q_limited = Q1 + \theta ( q(xi,eta) - Q1 )                     //
+                    // where theta = min(1, |Q1| / |Q1-m|; m = min_{i} q(xi_i, eta_i) //
+                    // -------------------------------------------------------------- //
+                    double m = 0.0;
+                    for(int mp=1; mp <= phi.getsize(1); mp++)
+                    {
+                        // evaluate q at spts(mp) //
+                        double qnow = 0.0;
+                        for( int k=1; k <= kmax; k++ )
+                        {
+                            qnow += qold.get(i,j,me,k) * phi.get(mp,k);
+                        }
+                        m = Min(m, qnow);
+                    }
+
+                    const double eps = 1e-12;
+                    double theta = 0.0;
+                    double Q1 = qold.get(i,j,me,1);
+
+//assert( Q1 > -1.0e-10 );
+
+                    if( fabs( Q1 - m ) < 1.0e-14 ) { theta = 0.0; }
+                    else{ theta = Min( 1.0, (Q1 - eps) / (Q1 - m) ); }
+
+                    // limit q //
+                    for( int k=2; k <= kmax; k++ )
+                    {
+                        qold.set(i,j,me,k, qold.get(i,j,me,k) * theta );
+                    }
+
+                }
+            }
+
+            for(int j=1; j<=my; j++)
+            {
+                for( int n=1; n<= mpoints1d; n++)
+                {
+
+                    /////////////////////////////////////////////////////
+                    // Set ql and qr
+                    /////////////////////////////////////////////////////					
+                    //jo = 'old' cell that provides data for current cell j
+                    double speedy = u2.get(i, n);
+                    int num_cell_shift = (int) ( floor(speedy * dt/ dy) );
+                    int jo = (int)(j - num_cell_shift);
+
+                    //save legendre weight from qold using
+                    //using periodic boundary conditions
+                    jo = iMod((jo-1),my) + 1;
+
+                    for(int k= 1; k<=kmax; k++)
+                    {
+
+                        qright.set(n, k, qold.get(i, jo, me, k) );
+                        if( jo - 1 == 0)
+                        {
+                            qleft.set(n, k, qold.get(i, my, me, k) );
+                        }else
+                        {
+                            qleft.set(n, k, qold.get(i, jo-1, me, k) );
+                        }
+                    }//end of loop over each polynomial
+                }
+
+                //create a discontinuous cell and project onto legendre basis
+                cell->project(qleft, qright, qcell);
+
+                //save legendre weights into qnew
+                for(int k=1; k<=kmax; k++)
+                {
+                    qnew.set(i,j, me, k, qcell.get(k));
+                }
+
+            }
+        }
+
+        delete cell;
+
+    }
+
+}

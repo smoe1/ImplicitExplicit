@@ -1,0 +1,30 @@
+Cartesian         Grid type (either Cartesian or Unstructured) 
+40                nout        = number of output times to print results
+40.0              tfinal      = final time
+0.018   	  dtv[1]      = initial dt
+1.0e10            dtv[2]      = max allowable dt 
+0.20              cflv[1]     = max allowable Courant number 1/(2k-1)
+0.19              cflv[2]     = desired Courant number
+500000            nv          = max number of time steps per call to DogSolve
+Runge-Kutta       Time-stepping method (e.g., Runge-Kutta, SDC, Advec)
+2                 method[1]   = order of accuracy in space
+2                 method[2]   = order of accuracy in time
+1                 method[3]   = use limiter (0: no, >=1: yes)
+1                 method[4]   = verbosity of output
+0                 method[5]   = mcapa (capacity function location in aux arrays)
+0                 method[6]   = maux (number of aux arrays, maux >= mcapa)
+1                 method[7]   = source term (1-yes, 2-no)
+14		  meqn        = number of equations
+0                 mrestart    = restart from old data (1-yes, 0-no)
+0		  nstart      = if mrestart==1: from file q(nstart)_restart.dat
+5                 datafmt     = 1 for ascii, 5 for hdf5.
+# -------------------------------------------------
+#   Cartesian grid data (ignored if Unstructured)
+# -------------------------------------------------
+32    	          mx          = number of grid elements in x-direction
+16 		  my          = number of grid elements in y-direction
+2                 mbc         = number of ghost cells on each boundary
+0.0		  xlow        = left end point
+6.283185307179586 xhigh       = right end point # 12.566370614359172
+0.0		  ylow        = lower end point
+3.141592653589793 yhigh       = upper end point # 6.283185307179586

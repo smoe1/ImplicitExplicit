@@ -1,0 +1,5 @@
+1.666666666666667       gamma #(gas constant)
+1836.0			mass_ratio
+0.01			debye_length
+100.0			cs_light
+0.01 			larmor_radius

@@ -1,0 +1,55 @@
+# A makefile that uses this file is expected to include this file
+# after putting one of the following lines:
+#include $(DOGPACK)/lib/Makefile.defs
+#include $(DOGPACK)/lib/1d/Makefile.defs
+#include $(DOGPACK)/lib/2d/Makefile.defs
+
+include $(DOGPACK)/apps/plasma/lib/Makefile.defs
+
+# where this library lives
+PLASMA_LIB2D =  $(DOGPACK)/apps/plasma/lib/2d
+
+# define inherited symbols
+#
+PLASMA_LIB2D_INCLUDE = -I$(PLASMA_LIB2D) $(PLASMA_TOPLIB_INCLUDE)
+#
+PLASMA_LIB2D_OBJECTS = \
+  $(PLASMA_TOPLIB_OBJECTS) \
+  $(PLASMA_LIB2D)/SetBndValuesRoutines.o \
+  $(PLASMA_LIB2D)/InitAppRoutines.o \
+  $(PLASMA_LIB2D)/GEM.o \
+  $(PLASMA_LIB2D)/ReconnectedFlux.o \
+  $(PLASMA_LIB2D)/FiveMoment.o \
+  $(PLASMA_LIB2D)/TenMoment.o \
+  $(PLASMA_LIB2D)/TwentyMoment.o \
+  $(PLASMA_LIB2D)/Maxwell.o \
+  $(PLASMA_LIB2D)/Advection.o \
+  $(PLASMA_LIB2D)/gasCart2.o \
+  $(PLASMA_LIB2D)/KrivodonovaLimiter.o \
+  $(PLASMA_LIB2D)/Limiters.o \
+  $(PLASMA_LIB2D)/PlasmaSolverCart2.o \
+  $(PLASMA_LIB2D)/main_plasma.o \
+#
+PLASMA_LIB2D_SOURCES = \
+  $(PLASMA_TOPLIB_SOURCES) \
+  $(PLASMA_LIB2D)/*.h \
+  $(PLASMA_LIB2D)/SetBndValuesRoutines.cpp \
+  $(PLASMA_LIB2D)/InitAppRoutines.cpp \
+  $(PLASMA_LIB2D)/GEM.cpp \
+  $(PLASMA_LIB2D)/ReconnectedFlux.cpp \
+  $(PLASMA_LIB2D)/FiveMoment.cpp \
+  $(PLASMA_LIB2D)/TenMoment.cpp \
+  $(PLASMA_LIB2D)/TwentyMoment.cpp \
+  $(PLASMA_LIB2D)/Maxwell.cpp \
+  $(PLASMA_LIB2D)/Advection.cpp \
+  $(PLASMA_LIB2D)/gasCart2.cpp \
+  $(PLASMA_LIB2D)/KrivodonovaLimiter.cpp \
+  $(PLASMA_LIB2D)/Limiters.cpp \
+  $(PLASMA_LIB2D)/PlasmaSolverCart2.cpp \
+  $(PLASMA_LIB2D)/main_plasma.cpp \
+
+# inheriting libraries are expected to override this
+INCLUDE_LIBS= $(PLASMA_LIB2D_INCLUDE) $(LIB2D_INCLUDE)
+ALL_SOURCES = $(PLASMA_LIB2D_SOURCES) $(LIB2D_SOURCES)
+ALL_OBJECTS = $(PLASMA_LIB2D_OBJECTS) $(LIB2D_OBJECTS)
+

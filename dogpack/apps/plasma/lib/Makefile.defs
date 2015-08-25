@@ -1,0 +1,43 @@
+# To avoid the diamond problem of multiple inheritance
+# an application is expected to inherit from this
+# and from $(DOGPACK)/lib
+#
+# So a makefile should include this file *after* including
+# $(DOGPACK)/lib/Makefile.defs
+# (or the Makefile.defs in one of the libraries that inherits from it)
+
+include $(DOGPACK)/apps/plasma/lib/sys/Makefile.defs
+
+# where this library lives
+PLASMA_TOPLIB = $(DOGPACK)/apps/plasma/lib
+
+# define inherited symbols
+#
+PLASMA_TOPLIB_INCLUDE = -I$(PLASMA_TOPLIB) $(PLASMA_LIB_SYS_INCLUDE)
+#
+PLASMA_TOPLIB_OBJECTS = \
+  $(PLASMA_LIB_SYS_OBJECTS) \
+  $(PLASMA_TOPLIB)/PlasmaParams.o \
+  $(PLASMA_TOPLIB)/MHDparams.o \
+  $(PLASMA_TOPLIB)/gas.o \
+  $(PLASMA_TOPLIB)/gas20.o \
+  $(PLASMA_TOPLIB)/gas10.o \
+  $(PLASMA_TOPLIB)/gas05.o \
+  $(PLASMA_TOPLIB)/Source2Fluid.o \
+#
+PLASMA_TOPLIB_SOURCES = \
+  $(PLASMA_LIB_SYS_SOURCES) \
+  $(PLASMA_TOPLIB)/PlasmaParams.cpp \
+  $(PLASMA_TOPLIB)/MHDparams.cpp \
+  $(PLASMA_TOPLIB)/gas.cpp \
+  $(PLASMA_TOPLIB)/gas20.cpp \
+  $(PLASMA_TOPLIB)/gas10.cpp \
+  $(PLASMA_TOPLIB)/gas05.cpp \
+  $(PLASMA_TOPLIB)/Source2Fluid.cpp \
+  $(PLASMA_TOPLIB)/*.h \
+
+# inheriting libraries are expected to override this
+INCLUDE_LIBS= $(PLASMA_TOPLIB_INCLUDE) $(TOPLIB_INCLUDE)
+ALL_SOURCES = $(PLASMA_TOPLIB_SOURCES) $(TOPLIB_SOURCES)
+ALL_OBJECTS = $(PLASMA_TOPLIB_OBJECTS) $(TOPLIB_OBJECTS)
+

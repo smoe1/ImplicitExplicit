@@ -1,0 +1,154 @@
+#include <cmath>
+#include "dog_math.h"
+#include "dogdefs.h"
+#include "PlasmaParams.h"
+#include "gas10.h"
+
+// ten-moment gas routines
+
+inline double _get_entropy_per_mass10(double rho,double M1,double M2,double M3,
+  double N11,double N12,double N13,double N22,double N23,double N33)
+{
+  const double u1 = M1/rho;
+  const double u2 = M2/rho;
+  const double u3 = M3/rho;
+  const double P11 = N11 - M1*u1;
+  const double P12 = N12 - M1*u2;
+  const double P13 = N13 - M1*u3;
+  const double P22 = N22 - M2*u2;
+  const double P23 = N23 - M2*u3;
+  const double P33 = N33 - M3*u3;
+  const double detP = det3x3symm(P11, P12, P13, P22, P23, P33);
+  const double entropy = 0.5*log(detP/pow(rho,5));
+  return entropy;
+}
+inline double _get_entropy_per_vol10(double rho,double M1,double M2,double M3,
+  double N11,double N12,double N13,double N22,double N23,double N33)
+{
+  return rho*_get_entropy_per_mass10(rho,M1,M2,M3,N11,N12,N13,N22,N23,N33);
+}
+double get_entropy_per_mass10(double rho,double M1,double M2,double M3,
+  double N11,double N12,double N13,double N22,double N23,double N33)
+{
+  return _get_entropy_per_mass10(rho,M1,M2,M3,N11,N12,N13,N22,N23,N33);
+}
+double get_entropy_per_vol10(double rho,double M1,double M2,double M3,
+  double N11,double N12,double N13,double N22,double N23,double N33)
+{
+  return _get_entropy_per_vol10(rho,M1,M2,M3,N11,N12,N13,N22,N23,N33);
+}
+
+void gas10_get_extreme_wave_spds(
+  const dTensor1& nhat,
+  const dTensor1& Ql,
+  const dTensor1& Qr,
+  int moffset,
+  double *gas_min_speed,
+  double *gas_max_speed)
+{
+  const double& n1 = nhat.get(1);
+  const double& n2 = nhat.get(2);
+  const double nmag = sqrt(n1*n1 + n2*n2);
+  assert_almost_eq(nmag,1.);
+
+  // Left primitive state
+  const double l_rho = Ql.get(moffset+_rho);
+  const double l_M1  = Ql.get(moffset+_M1);
+  const double l_M2  = Ql.get(moffset+_M2);
+  const double l_M3  = Ql.get(moffset+_M3);
+  const double l_u1  = l_M1/l_rho;
+  const double l_u2  = l_M2/l_rho;
+  const double l_u3  = l_M3/l_rho;
+  const double l_P11 = Ql.get(moffset+_N11) - l_rho*l_u1*l_u1;
+  const double l_P12 = Ql.get(moffset+_N12) - l_rho*l_u1*l_u2;
+  const double l_P13 = Ql.get(moffset+_N13) - l_rho*l_u1*l_u3;
+  const double l_P22 = Ql.get(moffset+_N22) - l_rho*l_u2*l_u2;
+  const double l_P23 = Ql.get(moffset+_N23) - l_rho*l_u2*l_u3;
+  const double l_P33 = Ql.get(moffset+_N33) - l_rho*l_u3*l_u3;
+  
+  // Left primitive state
+  const double r_rho = Qr.get(moffset+_rho);
+  const double r_u1  = Qr.get(moffset+_M1)/r_rho;
+  const double r_u2  = Qr.get(moffset+_M2)/r_rho;
+  const double r_u3  = Qr.get(moffset+_M3)/r_rho;
+  const double r_P11 = Qr.get(moffset+_N11) - r_rho*r_u1*r_u1;
+  const double r_P12 = Qr.get(moffset+_N12) - r_rho*r_u1*r_u2;
+  const double r_P13 = Qr.get(moffset+_N13) - r_rho*r_u1*r_u3;
+  const double r_P22 = Qr.get(moffset+_N22) - r_rho*r_u2*r_u2;
+  const double r_P23 = Qr.get(moffset+_N23) - r_rho*r_u2*r_u3;
+  const double r_P33 = Qr.get(moffset+_N33) - r_rho*r_u3*r_u3;
+  
+  // Average primitive states
+  const double rho = 0.5e0*(l_rho + r_rho);
+  const double u1  = 0.5e0*(l_u1  + r_u1 );
+  const double u2  = 0.5e0*(l_u2  + r_u2 );
+  const double u3  = 0.5e0*(l_u3  + r_u3 );
+  const double P11 = 0.5e0*(l_P11 + r_P11);
+  const double P12 = 0.5e0*(l_P12 + r_P12);
+  const double P13 = 0.5e0*(l_P13 + r_P13);
+  const double P22 = 0.5e0*(l_P22 + r_P22);
+  const double P23 = 0.5e0*(l_P23 + r_P23);
+  const double P33 = 0.5e0*(l_P33 + r_P33);
+  
+  // Sound speeds
+  // 
+  // speeds for central state
+  //
+  const double Pnn = n1*n1*P11 + 2*n1*n2*P12 + n2*n2*P22;
+  const double Pnn_rho = Pnn/rho;
+  const double cs = sqrt(Pnn_rho);
+  const double cf = sq3*cs;
+  //
+  // speeds for left state
+  //
+  const double l_Pnn = n1*n1*l_P11 + 2*n1*n2*l_P12 + n2*n2*l_P22;
+  assert_gt(l_rho,0.);
+  assert_gt(l_Pnn,0.);
+  const double l_Pnn_rho = l_Pnn/l_rho;
+  const double l_cs = sqrt(l_Pnn_rho);
+  const double l_cf = sq3*l_cs;
+  //
+  // speeds for right state
+  //
+  const double r_Pnn = n1*n1*r_P11 + 2*n1*n2*r_P12 + n2*n2*r_P22;
+  assert_gt(r_rho,0.);
+  assert_gt(r_Pnn,0.);
+  const double r_Pnn_rho = r_Pnn/r_rho;
+  const double r_cs = sqrt(r_Pnn_rho);
+  const double r_cf = sq3*r_cs;
+
+  // normal velocities
+  const double un   = n1*u1   + n2*u2;
+  const double l_un = n1*l_u1 + n2*l_u2;
+  const double r_un = n1*r_u1 + n2*r_u2;
+
+  // Minimum speed
+  (*gas_min_speed) = Min(l_un-l_cf, un-cf);
+  
+  // Maximum speed
+  (*gas_max_speed) = Max(r_un+r_cf, un+cf);
+}
+
+void set_entropy_per_vol10(dTensor2& q_new, const dTensor2& qvals,
+    int firstIdx, int _entropy_s)
+{
+  // Loop over each point
+  for (int i=1; i<=qvals.getsize(1); i++)
+  {
+    int idx=firstIdx;
+    const double rho = qvals.get(i, idx++);
+    const double M1  = qvals.get(i, idx++);
+    const double M2  = qvals.get(i, idx++);
+    const double M3  = qvals.get(i, idx++);
+    const double N11 = qvals.get(i, idx++);
+    const double N12 = qvals.get(i, idx++);
+    const double N13 = qvals.get(i, idx++);
+    const double N22 = qvals.get(i, idx++);
+    const double N23 = qvals.get(i, idx++);
+    const double N33 = qvals.get(i, idx++);
+    const double entropy = _get_entropy_per_vol10(
+      rho,M1,M2,M3,N11,N12,N13,N22,N23,N33);
+    q_new.set(i, _entropy_s, entropy);
+  }
+}
+

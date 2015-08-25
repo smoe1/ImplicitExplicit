@@ -1,0 +1,38 @@
+VLASOV_LIB = $(DOGPACK)/apps/2d/VlasovPoisson1d/lib
+VLASOV_INCLUDE = -I$(VLASOV_LIB) $(LIB2D_INCLUDE) $(SL_INCLUDE)
+INCLUDE_LIBS = $(VLASOV_INCLUDE)
+
+SetAdvecSpeedExtra = $(VLASOV_LIB)/SetAdvecSpeedExtra
+InitSLState        = $(VLASOV_LIB)/InitSLState
+InitHybridState    = $(VLASOV_LIB)/InitHybridState
+AfterSLFrame       = $(VLASOV_LIB)/AfterSLFrame
+AfterQinit         = $(VLASOV_LIB)/AfterQinit
+ComputeElecField   = $(VLASOV_LIB)/ComputeElecField
+
+# This Output prints the electric field as well
+#
+# TODO - after the code was rebuilt, this no longer gets called, and therefore
+# is swapping out something completely useless! (-DS)
+#
+Output_Extra             = $(VLASOV_LIB)/Output_Extra
+
+# place to add objects and sources
+
+VLASOV_LIB_OBJECTS = \
+	$(VLASOV_LIB)/SL1droutines.o \
+	$(ComputeElecField).o \
+	$(VLASOV_LIB)/ConvertBC.o \
+	$(VLASOV_LIB)/PoissonSolve.o \
+	$(VLASOV_LIB)/VlasovParams.o \
+        $(VLASOV_LIB)/VPDataCart2.o \
+
+#
+VLASOV_LIB_SOURCES = \
+        $(VLASOV_LIB)/*.h \
+	$(VLASOV_LIB)/SL1droutines.cpp \
+	$(ComputeElecField).cpp \
+	$(VLASOV_LIB)/ConvertBC.cpp \
+	$(VLASOV_LIB)/PoissonSolve.cpp \
+	$(VLASOV_LIB)/VlasovParams.cpp \
+	$(VLASOV_LIB)/VPDataCart2.cpp \
+
