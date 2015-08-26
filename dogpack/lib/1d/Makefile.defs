@@ -74,7 +74,7 @@ SOURCES_EXPECTED = \
 # way we keep track of which object modules are currently being
 # overridden by some application)
 #
-RunDogpack           = $(LIB1D)/RunDogpack
+#RunDogpack           = $(LIB1D)/RunDogpack
 Output               = $(LIB1D)/Output
 Output_Extra         = $(LIB1D)/Output_Extra
 ConSoln              = $(LIB1D)/ConSoln
@@ -107,6 +107,17 @@ L2ProjectLxW         = $(LIB1D)/LaxWendroff/L2ProjectLxW
 L2ProjectLxWTD       = $(LIB1D)/LaxWendroff/L2ProjectLxWTD
 RiemannSolveLxW      = $(LIB1D)/LaxWendroff/RiemannSolveLxW_LLF
 
+# Routines needed for Implicit time stepping:
+DogSolveImplicit     = $(LIB1D)/DogSolveUser_Interface_Implicit
+ConstructL_Imp = $(LIB1D)/ImplicitExplicit/ConstructL_Interface_ImplicitPart
+ConstructL_Ex  = $(LIB1D)/ImplicitExplicit/ConstructL_Interface_ExplicitPart
+UpdateSoln_Imp = $(LIB1D)/ImplicitExplicit/UpdateSoln_Interface_ImplicitPart
+UpdateSoln_Ex = $(LIB1D)/ImplicitExplicit/UpdateSoln_Interface_ExplicitPart
+L2ProjectImp   = $(LIB1D)/ImplicitExplicit/L2Project_interface
+RunDogpack           = $(LIB1D)/ImplicitExplicit/RunDogpackIMEX
+
+
+
 LIB1D_OBJECTS = \
   $(TOPLIB_OBJECTS) \
   $(LIB1D)/main_global.o \
@@ -116,6 +127,12 @@ LIB1D_OBJECTS = \
   $(L2Project).o \
   $(L2ProjectLxW).o \
   $(L2ProjectLxWTD).o \
+  $(L2ProjectImp).o \
+  $(UpdateSoln_Imp).o \
+  $(UpdateSoln_Ex).o \
+  $(ConstructL_Imp).o \
+  $(ConstructL_Ex).o \
+  $(DogSolveImplicit).o \
   $(Output).o \
   $(Output_Extra).o \
   $(ConSoln).o \
@@ -165,6 +182,12 @@ LIB1D_SOURCES = \
   $(L2Project).cpp \
   $(L2ProjectLxW).cpp \
   $(L2ProjectLxWTD).cpp \
+  $(L2ProjectImp).cpp \
+  $(UpdateSoln_Imp).cpp \
+  $(UpdateSoln_Ex).cpp \
+  $(ConstructL_Imp).cpp \
+  $(ConstructL_Ex).cpp \
+  $(DogSolveImplicit).cpp \
   $(Output).cpp \
   $(Output_Extra).cpp \
   $(ConSoln).cpp \
