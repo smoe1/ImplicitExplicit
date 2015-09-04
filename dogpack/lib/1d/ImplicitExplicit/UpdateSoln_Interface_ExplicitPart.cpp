@@ -88,13 +88,12 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
           if(run==1)
           {    tmp=qstar.get(j,m,k)+0.5*dt*Lstar.get(j,m,k);}
           else
-          {    tmp=qnew.get(j,m,k)+dt*Lstar.get(j,m,k);}*/
-          
+          {    tmp=qnew.get(j,m,k)+dt*Lstar.get(j,m,k);}*/          
         }
  
 
 //printf("THIS SPOT1! %d %d \n",j,(mx+mbc-2));    }
-}
+      }
 //printf("THIS SPOT3! \n");
     // Optional call to modify updated solution
     void AfterUpdateSoln(const dTensor2& node,

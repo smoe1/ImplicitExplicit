@@ -67,6 +67,11 @@ void UpdateSoln_Interface_ImplicitPart(int run,double alpha1,double alpha2,doubl
 
 //printf("THIS SPOT2! %e \n",global2interf.get(458));
     
+
+//printf(" HERE! %e %e %e %e \n",qstar.get(499,1,1),qstar.get(500,1,1),qstar.get(502,1,1),qstar.get(503,1,1));
+
+int test=0;
+
 #pragma omp parallel for private(a,a1,b,ipiv)
     for (int j=1; j<=(mx+mbc-2); j++)
     {
@@ -76,8 +81,7 @@ void UpdateSoln_Interface_ImplicitPart(int run,double alpha1,double alpha2,doubl
      
         //printf("THIS SPOT0! %d \n",j-1);
         if( abs(global2interf.get(j-1))<=1.0e-1 && abs(global2interf.get(j))<=1.0e-1 && abs(global2interf.get(j+1))<=1.0e-1)
-        {
-        
+        {          
           /*double tmp=0.0;
           if(run==1)
           {    tmp=qstar.get(j,m,k)+0.5*dt*Lstar.get(j,m,k);}
@@ -85,10 +89,10 @@ void UpdateSoln_Interface_ImplicitPart(int run,double alpha1,double alpha2,doubl
           {    tmp=qnew.get(j,m,k)+dt*Lstar.get(j,m,k);}*/
           
         }
-        else if (abs(global2interf.get(j))>1.0e-1)
+        else if (test==0 && abs(global2interf.get(j))>=1.0e-1)
         {
-           
-   // printf("HEREHERE!\n");       
+           test=2; 
+                  
            int iint=int(global2interf.get(j));
            double dx=dxi.get(iint,1)+dxi.get(iint,2);
 
@@ -103,39 +107,39 @@ void UpdateSoln_Interface_ImplicitPart(int run,double alpha1,double alpha2,doubl
                  //a[r + c*dim] = -0.5*dt*Implicit.get(iint,1,c+1,r+1);
 		 //a1[r+ c*dim] = (dxi.get(iint,1)*(r==0)+dxi.get(iint,2)*(r==1))*1.0*(r==c)+0.5*dt*Implicit.get(iint,1,r+1,c+1);
                  a1[r+ c*dim] = (1.0*(c==0 ||c==1|| c==4|| c==5)+dxl*(c==2)+dxr*(c==3))*1.0*(r==c)+1.0*lam*Implicit.get(iint,1,r+1,c+1);
+                 
              }
-           }  
+             
+          }  
           int m=1;int k=1;
+    
           b[0+k-1]=qstar.get(j-2,m,k);
           b[1*kmax+k-1]=qstar.get(j-1,m,k);
           b[2*kmax+k-1]=dxl*qIstar.get(1,iint,m,k);
           b[3*kmax+k-1]=dxr*qIstar.get(2,iint,m,k);
           b[4*kmax+k-1]=qstar.get(j+1,m,k);
           b[5*kmax+k-1]=qstar.get(j+2,m,k);
-          //b[k+4]=qstar.get(j+1,m,k)+0.5*(lam)*Lstar.get(j+1,m,k);
-         
-   }
+          //b[k+4]=qstar.get(j+1,m,k)+0.5*(lam)*Lstar.get(j+1,m,k);         
+        }
 
     if(abs(global2interf.get(j))<=1.0e-1)
     {
  
-     }
+    }
     else 
     {
-
 
     int iint=int(global2interf.get(j));
     int one=1;int info;
     dgesv_(&dim, &one, &*a1.begin(), &dim, &*ipiv.begin(), &*b.begin(), &dim, &info);
 
-
+     if(abs(b[4])>0.0)
+     {printf("%d B=%e \n",info,b[4]);exit(1);}
      for (int m=1; m<=meqn; m++)
      for (int k=1; k<=kmax; k++)
-     {
-
-        
+     {       
         if(kmax==1)
-        {
+        {		
         qnew.set(j-1,m,k,b[1]);
         qInew.set(1,iint,m,k,b[2]); 
         qInew.set(2,iint,m,k,b[3]);

@@ -6,7 +6,7 @@ include $(DOGPACK)/lib/sys/Makefile.defs
 # where this library lives
 TOPLIB = $(DOGPACK)/lib
 
-LFLAGS = $(HDF5_LIBRARIES)
+LFLAGS = $(HDF5_LIBRARIES) -L/usr/lib/lapack/ -L/usr/lib/libblas
 
 # define inherited symbols
 #

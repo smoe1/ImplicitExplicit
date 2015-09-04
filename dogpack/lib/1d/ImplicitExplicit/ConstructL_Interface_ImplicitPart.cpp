@@ -96,7 +96,7 @@ void L2Project_interface(int mopt, int istart, int iend,
     int jlist[4];
     jlist[0]=-2;
     jlist[1]=-1;
-    jlist[2]=1;
+    jlist[2]=0;
     jlist[3]=1;
 
     int startlist[4];
@@ -128,20 +128,26 @@ void L2Project_interface(int mopt, int istart, int iend,
         {
 
             for (int k=1; k<=method[1]; k++)
+            {
             for (int k1=1; k1<=method[1]; k1++)
             {
                 double tmpl=-pow(-1.0,k-1)*pow(-1.0,k1-1)*sqrt(2.0*double(k)-1.0)*sqrt(2.0*double(k1)-1.0)*aux.get(i+j,1,1);
                 double tmpr=pow(1.0,k-1)*pow(1.0,k1-1)*sqrt(2.0*double(k)-1.0)*sqrt(2.0*double(k1)-1.0)*aux.get(i+j,1,1);
                 if(j==-2)
-                {Implicit.set(iint,m,startlist[j+2]+k,startlist[j+2]+k1,tmpl+tmpr);}
+                {
+                 Implicit.set(iint,m,startlist[j+2]+k,startlist[j+2]+k1,tmpl+tmpr);
+                }
                 else
                 {
                     Implicit.set(iint,m,startlist[j+2]+k,startlist[j+1]+k1,tmpl);
                     Implicit.set(iint,m,startlist[j+2]+k,startlist[j+2]+k1,tmpr);
                 }
+                
+            }
+            //printf("j=%d here! %d %d %e \n",j,startlist[j+2]+1,startlist[j+2]+1,Implicit.get(iint,1,startlist[j+2]+1,startlist[j+2]+1));
+            
             }
         }
-
       
        }
      

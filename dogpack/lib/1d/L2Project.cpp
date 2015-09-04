@@ -30,9 +30,10 @@ void L2Project(int mopt, int istart, int iend,
   const int mlength = Fout.getsize(2);
   const int mpoints = Fout.getsize(3);  
 
-  int mtmp = iMax(1,mpoints-mopt);
+  int mtmp = iMax(5,mpoints-mopt);
   dTensor1 wgt(mtmp), spts(mtmp);
   dTensor2 phi(mtmp,kmax), phi_x(mtmp,kmax);
+ 
 
   // -----------------
   // Quick error check
