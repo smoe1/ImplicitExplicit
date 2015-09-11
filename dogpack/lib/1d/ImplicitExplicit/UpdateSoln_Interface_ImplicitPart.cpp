@@ -111,14 +111,15 @@ int test=0;
              }
              
           }  
-          int m=1;int k=1;
-    
-          b[0+k-1]=qstar.get(j-2,m,k);
-          b[1*kmax+k-1]=qstar.get(j-1,m,k);
-          b[2*kmax+k-1]=dxl*qIstar.get(1,iint,m,k);
-          b[3*kmax+k-1]=dxr*qIstar.get(2,iint,m,k);
-          b[4*kmax+k-1]=qstar.get(j+1,m,k);
-          b[5*kmax+k-1]=qstar.get(j+2,m,k);
+          int m=1;
+          for(int k=1; k <= kmax; k++) {
+                b[0+k-1]=qstar.get(j-2,m,k);
+                b[1*kmax+k-1]=qstar.get(j-1,m,k);
+                b[2*kmax+k-1]=dxl*qIstar.get(1,iint,m,k);
+                b[3*kmax+k-1]=dxr*qIstar.get(2,iint,m,k);
+                b[4*kmax+k-1]=qstar.get(j+1,m,k);
+                b[5*kmax+k-1]=qstar.get(j+2,m,k);
+          }
           //b[k+4]=qstar.get(j+1,m,k)+0.5*(lam)*Lstar.get(j+1,m,k);         
         }
 
@@ -133,18 +134,27 @@ int test=0;
     int one=1;int info;
     dgesv_(&dim, &one, &*a1.begin(), &dim, &*ipiv.begin(), &*b.begin(), &dim, &info);
 
-     if(abs(b[4])>0.0)
-     {printf("%d B=%e \n",info,b[4]);exit(1);}
+     //if(abs(b[4])>0.0)
+     //{printf("%d B=%e \n",info,b[4]);exit(1);}
      for (int m=1; m<=meqn; m++)
      for (int k=1; k<=kmax; k++)
      {       
+
+
+          for(int k=1; k <= kmax; k++) {
+                qnew.set(j-1,m,k,b[1*kmax+k-1]);
+                qInew.set(1,iint,m,k,b[2*kmax+k-1]);
+                qInew.set(2,iint,m,k,b[3*kmax+k-1]);
+                qnew.set(j+1,m,k,b[4*kmax+k-1]);
+          }
+        /*     
         if(kmax==1)
         {		
         qnew.set(j-1,m,k,b[1]);
         qInew.set(1,iint,m,k,b[2]); 
         qInew.set(2,iint,m,k,b[3]);
         qnew.set(j+1,m,k,b[4]); 
-        }
+        }*/
      }
 
     }

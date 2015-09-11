@@ -301,12 +301,11 @@ void L2Project_interface(int mopt, int istart, int iend,
                     //Implicit.set(iint,m1,m2,m3, Implicit.get(iint,m1,m2,m3)+0.5*tmpIl );
                     //Implicit.set(iint,m1,kmax+m2,kmax+m3, Implicit.get(iint,m1,kmax+m2,kmax+m3)+0.5*tmpIr );
                     Implicit.set(iint,1,m2,m3, Implicit.get(iint,1,m2,m3)-0.5*tmpIl );
-                    Implicit.set(iint,1,kmax+m2,kmax+m3, Implicit.get(iint,1,kmax+m2,kmax+m3)-0.5*tmpIr );
+                    Implicit.set(iint,1,kmax+m2,kmax+m3, Implicit.get(iint,1,kmax+m2,kmax+m3)-0.5*tmpIl );
                     Implicit.set(iint,1,2*kmax+m2,2*kmax+m3, Implicit.get(iint,1,2*kmax+m2,2*kmax+m3)-0.5*tmpIl );
                     Implicit.set(iint,1,3*kmax+m2,3*kmax+m3, Implicit.get(iint,1,3*kmax+m2,3*kmax+m3)-0.5*tmpIr );
-                    Implicit.set(iint,1,4*kmax+m2,4*kmax+m3, Implicit.get(iint,1,4*kmax+m2,4*kmax+m3)-0.5*tmpIl );
+                    Implicit.set(iint,1,4*kmax+m2,4*kmax+m3, Implicit.get(iint,1,4*kmax+m2,4*kmax+m3)-0.5*tmpIr );
                     Implicit.set(iint,1,5*kmax+m2,5*kmax+m3, Implicit.get(iint,1,5*kmax+m2,5*kmax+m3)-0.5*tmpIr );
-                    exit(1);
                     //if(abs(tmpIl)>1.0e-12 || abs(tmpIr)>1.0e-12)
                     //{printf("HERE2!!!! %e %e \n",0.5*tmpIl,0.5*tmpIr);}
                   }
