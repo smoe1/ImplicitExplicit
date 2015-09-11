@@ -96,7 +96,7 @@ int test=0;
            int iint=int(global2interf.get(j));
            double dx=dxi.get(iint,1)+dxi.get(iint,2);
 
-           double lam=(dt/dx);
+           double lam=(beta*dt/dx);
 
            double dxl=dxi.get(iint,1)/dx;
            double dxr=dxi.get(iint,2)/dx;

@@ -170,6 +170,7 @@ LIB1D_OBJECTS = \
   $(RiemannSolveLxW).o \
   $(LIB1D)/SetRKinfo.o \
   $(LIB1D)/LaxWendroff/EvalRiemmanData.o \
+  $(LIB1D)/ImplicitExplicit/classSDIRK.o \
   $(LIB1D)/LegendrePolys1d.o \
 
 LIB1D_SOURCES = \
@@ -225,5 +226,6 @@ LIB1D_SOURCES = \
   $(RiemannSolveLxW).cpp \
   $(LIB1D)/SetRKinfo.cpp \
   $(LIB1D)/LaxWendroff/EvalRiemmanData.cpp \
+  $(LIB1D)/ImplicitExplicit/classSDIRK.cpp \
   $(LIB1D)/LegendrePolys1d.cpp \
 

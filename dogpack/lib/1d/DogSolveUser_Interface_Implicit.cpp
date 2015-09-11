@@ -6,7 +6,7 @@
 #include "DogParams.h"
 #include "RKinfo.h"
 #include "DogSolver.h"
-
+#include "ImplicitExplicit/classSDIRK.h"
 // If we want to use DogSolver from the top-level library, this needs to be
 // written:
 // #include "DogState1d.h"  
@@ -150,7 +150,9 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
 
     // Local storage
     dTensorBC3   qstar(mx,meqn,kmax,mbc);
+    dTensorBC3   qold2(mx,meqn,kmax,mbc);
     dTensor4   qIstar(2,interfaces,meqn,kmax);
+    dTensor4   qIold2(2,interfaces,meqn,kmax);
     dTensorBC3 auxstar(mx,maux,kmax,mbc);
     dTensorBC3   Lstar(mx,meqn,kmax,mbc);
     dTensorBC3   Lstare(mx,meqn,kmax,mbc);
@@ -211,6 +213,7 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
             // do any extra work
             BeforeFullTimeStep(dt,node,prim_vol,auxstar,aux,qold,qnew);
 
+            SDIRK sdirk(3,4);
             // Take a full time step of size dt
             switch ( abs(method[2]) )
             {
@@ -228,13 +231,9 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
                    
                     //UpdateSoln(rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),
                     //        rk.beta->get(rk.mstage),dt,node,aux,qnew,Lstar,qnew);
-                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,
-                    node,aux,qnew,qInew,LstarI,Lstar,
-                    Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
                     
-                    UpdateSoln_Interface_ExplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,
-                    node,aux,qnew,qInew,LstarI,Lstar,
-                    Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
+                    UpdateSoln_Interface_ExplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
                                         
                     AfterStep(dt,node,aux,qnew);
                     // --------------------------------------------------------
@@ -259,41 +258,47 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
 
                     // ---------------------------------------------------------
                     // Stage #1
+
+                    qIold2.copyfrom(qInew);
+                    qold2.copyfrom(qnew);
+
                     dogParams.set_time(told);
-
-
                     rk.mstage = 1;
                     BeforeStep(dt,node,aux,qnew);    
-                    ConstructL(method,node,aux,qnew,Lstar,smax);
-                    UpdateSoln(rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),
-                            rk.beta->get(rk.mstage),dt,node,aux,qnew,Lstar,qstar);
-                    if (dogParams.using_moment_limiter())
-                    { ApplyLimiter(node,aux,qstar,&ProjectRightEig,&ProjectLeftEig); }          
+                    ConstructL_Interface_ExplicitPart(method,node,aux,qnew,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ExplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,
+                    node,aux,qnew,qInew,LstarI,Lstar,
+                    Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     AfterStep(dt,node,auxstar,qstar);
 
+                    ConstructL_Interface_ImplicitPart(method,node,aux,qnew,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     // ---------------------------------------------------------
                     // Stage #2
                     dogParams.set_time(told+dt);
                     rk.mstage = 2;
                     BeforeStep(dt,node,auxstar,qstar);
-                    ConstructL(method,node,auxstar,qstar,Lstar,smax);
-                    UpdateSoln(rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),
-                            rk.beta->get(rk.mstage),dt,node,auxstar,qnew,Lstar,qstar);
-                    if (dogParams.using_moment_limiter())
-                    { ApplyLimiter(node,auxstar,qstar,&ProjectRightEig,&ProjectLeftEig);  }
+                    ConstructL_Interface_ExplicitPart(method,node,aux,qstar,qIstar,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ExplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,
+                    node,aux,qnew,qInew,LstarI,Lstar,
+                    Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     AfterStep(dt,node,auxstar,qstar);
 
+                    ConstructL_Interface_ImplicitPart(method,node,aux,qnew,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     // ---------------------------------------------------------
                     // Stage #3
                     dogParams.set_time(told+0.5*dt);
                     rk.mstage = 3;
                     BeforeStep(dt,node,auxstar,qstar);
-                    ConstructL(method,node,auxstar,qstar,Lstar,smax);
-                    UpdateSoln(rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),
-                            rk.beta->get(rk.mstage),dt,node,auxstar,qstar,Lstar,qnew);   
-                    if (dogParams.using_moment_limiter())
-                    { ApplyLimiter(node,auxstar,qnew,&ProjectRightEig,&ProjectLeftEig); }
+                    ConstructL_Interface_ExplicitPart(method,node,aux,qstar,qIstar,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ExplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,
+                    node,aux,qstar,qIstar,LstarI,Lstar,
+                    Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
                     AfterStep(dt,node,aux,qnew);
+                    ConstructL_Interface_ImplicitPart(method,node,aux,qold2,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qold2,qIold2,LstarI,Lstar,Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
                     // ---------------------------------------------------------
 
                     break;
