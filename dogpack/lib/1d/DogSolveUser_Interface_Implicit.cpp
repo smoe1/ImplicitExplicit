@@ -6,7 +6,7 @@
 #include "DogParams.h"
 #include "RKinfo.h"
 #include "DogSolver.h"
-#include "ImplicitExplicit/classSDIRK.h"
+//#include "ImplicitExplicit/classSDIRK.h"
 // If we want to use DogSolver from the top-level library, this needs to be
 // written:
 // #include "DogState1d.h"  
@@ -170,6 +170,8 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
     qIstar.copyfrom(qInew);
     auxstar.copyfrom(aux);
 
+printf("Qi check= %e \n",qInew.get(1,1,1,1));
+
     while (t<tend)
     {
         // initialize time step
@@ -213,7 +215,7 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
             // do any extra work
             BeforeFullTimeStep(dt,node,prim_vol,auxstar,aux,qold,qnew);
 
-            SDIRK sdirk(3,4);
+            //SDIRK sdirk(3,4);
             // Take a full time step of size dt
             switch ( abs(method[2]) )
             {
@@ -271,8 +273,8 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
                     Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     AfterStep(dt,node,auxstar,qstar);
 
-                    ConstructL_Interface_ImplicitPart(method,node,aux,qnew,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
-                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
+                    ConstructL_Interface_ImplicitPart(method,node,aux,qold2,qIold2,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),1.0,dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     // ---------------------------------------------------------
                     // Stage #2
                     dogParams.set_time(told+dt);
@@ -284,8 +286,8 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
                     Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     AfterStep(dt,node,auxstar,qstar);
 
-                    ConstructL_Interface_ImplicitPart(method,node,aux,qnew,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
-                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
+                    ConstructL_Interface_ImplicitPart(method,node,aux,qold2,qIold2,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),0.5,dt,node,aux,qnew,qInew,LstarI,Lstar,Implicit,qstar,qIstar,auxI,global2interf,interf2global,dxi);
                     // ---------------------------------------------------------
                     // Stage #3
                     dogParams.set_time(told+0.5*dt);
@@ -296,9 +298,9 @@ void UpdateSoln_Interface_ExplicitPart(int run,double alpha1,double alpha2,doubl
                     node,aux,qstar,qIstar,LstarI,Lstar,
                     Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
                     AfterStep(dt,node,aux,qnew);
-                    ConstructL_Interface_ImplicitPart(method,node,aux,qold2,qInew,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
-                    
-                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),rk.beta->get(rk.mstage),dt,node,aux,qold2,qIold2,LstarI,Lstar,Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
+
+                    ConstructL_Interface_ImplicitPart(method,node,aux,qold2,qIold2,auxI,global2interf,interf2global,dxi,LstarI,Lstar,Implicit,smax);
+                    UpdateSoln_Interface_ImplicitPart(1,rk.alpha1->get(rk.mstage),rk.alpha2->get(rk.mstage),1.0,dt,node,aux,qold2,qIold2,LstarI,Lstar,Implicit,qnew,qInew,auxI,global2interf,interf2global,dxi);
                     // ---------------------------------------------------------
 
                     break;

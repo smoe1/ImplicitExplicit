@@ -148,6 +148,9 @@ void L2Project_interface(int mopt, int istart, int iend,
     dTensor4 qInew(2,interfaces,meqn,method[1]);qInew.setall(0.0);
     dTensor4 qIold(2,interfaces,meqn,method[1]);qIold.setall(0.0);
 
+
+//printf("Qi1 check= %e \n",qInew.get(1,1,1,1));
+
     dTensor4 auxI(2,interfaces,iMax(method[6],1),method[1]);auxI.setall(0.0);
 
     dTensor1   interf2global(interfaces);interf2global.setall(0.0);
@@ -160,11 +163,13 @@ void L2Project_interface(int mopt, int istart, int iend,
     for (int i=1;i<=melems;i++)
     {
          global2interf.set(i,0.0);
+         //printf("location=%e %e \n",aux.get(i,3,1),(double(i)-1)*dx);
          if(aux.get(i,2,1)>0.0)
          {
           interfaces=interfaces+1;
           interf2global.set(interfaces,double(i));
           global2interf.set(i,double(interfaces));
+          //printf("locationin=%e %e \n",aux.get(i,3,1),dx);
           dxi.set(interfaces,1,aux.get(i,3,1)-(double(i)-1)*dx);
           dxi.set(interfaces,2,dx-dxi.get(interfaces,1));
          }

@@ -1,7 +1,7 @@
 #include "tensors.h"
 #include "assert.h"
 #include <vector>
-#include "classSDIRK.h"
+//#include "classSDIRK.h"
 
 using namespace std;
 
@@ -42,6 +42,9 @@ void UpdateSoln_Interface_ImplicitPart(int run,double alpha1,double alpha2,doubl
   cout << "dgesv is over for " << double(c3 - c2) << endl;
   cout << "info is " << info << endl;
   */
+
+    //printf("Qi check= %e \n",qIstar.get(1,1,1,1));
+
     const int     mx = qnew.getsize(1);
     const int   meqn = qnew.getsize(2);
     const int   kmax = qnew.getsize(3);
@@ -120,6 +123,11 @@ int test=0;
                 b[4*kmax+k-1]=qstar.get(j+1,m,k);
                 b[5*kmax+k-1]=qstar.get(j+2,m,k);
           }
+          /*
+          for(int k=1; k <= 6*kmax; k++) {
+              printf("HERE WE GO %e \n",b[k-1]); 
+          }*/
+
           //b[k+4]=qstar.get(j+1,m,k)+0.5*(lam)*Lstar.get(j+1,m,k);         
         }
 
@@ -130,6 +138,8 @@ int test=0;
     else 
     {
 
+    //for(int k=1; k <= 6*kmax; k++)
+    //{printf("RHS check %e \n",b[k-1]);}
     int iint=int(global2interf.get(j));
     int one=1;int info;
     dgesv_(&dim, &one, &*a1.begin(), &dim, &*ipiv.begin(), &*b.begin(), &dim, &info);
@@ -142,6 +152,11 @@ int test=0;
 
 
           for(int k=1; k <= kmax; k++) {
+                if(abs(b[3*kmax+k-1])>1.0e-14 ||abs(b[4*kmax+k-1])>1.0e-14)
+                {
+                printf("HERE %d \n",j);
+                printf("HERE1! %d,%e \n",k,b[3*kmax+k-1]);
+                printf("HERE2! %d,%e \n",k,b[4*kmax+k-1]);}
                 qnew.set(j-1,m,k,b[1*kmax+k-1]);
                 qInew.set(1,iint,m,k,b[2*kmax+k-1]);
                 qInew.set(2,iint,m,k,b[3*kmax+k-1]);

@@ -130,10 +130,11 @@ void L2Project(int mopt, int istart, int iend,
 		for (int m2=1; m2<=mpoints; m2++)
 		  {
 		    double tmp = 0.0;
-		    for (int k=1; k<=mpoints; k++)
+		    for (int k=1; k<=mtmp; k++)
 		      {
 			tmp += wgt.get(k)*fvals.get(k,m1)*phi.get(k,m2);
 		      }
+                   
 		    Fout.set(i,m1,m2, 0.5*tmp );
 		  }
 
@@ -144,7 +145,7 @@ void L2Project(int mopt, int istart, int iend,
 		for (int m2=1; m2<=mpoints; m2++)
 		  {
 		    double tmp = 0.0;
-		    for (int k=1; k<=(mpoints-mopt); k++)
+		    for (int k=1; k<=(mtmp-mopt); k++)
 		      {
 			tmp += wgt.get(k)*fvals.get(k,m1)*phi_x.get(k,m2);
 		      }

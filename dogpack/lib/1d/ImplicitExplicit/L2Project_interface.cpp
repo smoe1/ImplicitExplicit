@@ -188,8 +188,12 @@ void L2Project_interface(int mopt, int istart, int iend,
 
           //SampleBasisGrad_variable(lspts,lIphi_x,dxl);
           //SampleBasisGrad_variable(rspts,rIphi_x,dxr);           
-          SampleBasisGrad_variable(lspts,lIphi_x,1.0);
-          SampleBasisGrad_variable(rspts,rIphi_x,1.0);           
+          //SampleBasisGrad_variable(lspts,lIphi_x,1.0);
+          //SampleBasisGrad_variable(rspts,rIphi_x,1.0);           
+
+          SampleBasisGrad_variable(spts,lIphi_x,dxl);
+          SampleBasisGrad_variable(spts,rIphi_x,dxr);
+
 
 
 	  // Loop over each quadrature point
@@ -231,16 +235,29 @@ void L2Project_interface(int mopt, int istart, int iend,
 				  + phi.get(m,k) * auxI.get(2,iint,ma,k) );
                     }
                 }
+            //printf("xcl=%e xtryl= %e \n",xc1,dxl);
+            //printf("xcr=%e xtryr= %e \n",xc2,dxr);
             }
 
 	  // Call user-supplied function to set fvals
+          
 	  Func(xptsl,qvalsl,auxvalsl,fvalsl);
           Func(xptsr,qvalsr,auxvalsr,fvalsr);
+          /*
+          for (int m=1; m<=mtmp; m++)
+            {
+               printf("xtryl= %e \n",xptsl.get(m));
+               printf("xtryr= %e \n",xptsr.get(m));
+               printf("qtryl= %e \n",qvalsl.get(m,1));
+               printf("qtryr= %e \n",qvalsr.get(m,1));
+            }*/
+
+
           //printf("i=%d iint=%d q= %e %e \n",i,iint,qI.get(1,iint,1,1),qI.get(1,iint,1,2)); 
-          //printf("2i=%d iint=%d q= %e %e \n",i,iint,qI.get(2,iint,1,1),qI.get(2,iint,1,2)); 
+          //printf("2i=%d iint=%d q= %e %e \n",i,iint,Iq.qget(2,iint,1,1),qI.get(2,iint,1,2)); 
 
           /*
-	  for (int m=1; m<=mtmp; m++)
+	  for (inti m=1; m<=mtmp; m++)
             {
                 printf("Points HERE! %d %e %e %e %e \n",m,xptsl.get(m),fvalsl.get(m,1),xptsr.get(m),fvalsl.get(m,1));
               
@@ -263,9 +280,7 @@ void L2Project_interface(int mopt, int istart, int iend,
 		    FI.set(1,iint,m1,m2, 0.5*tmpl );
                     FI.set(2,iint,m1,m2, 0.5*tmpr );
 		  }
-
             }
-          
 	  else // project onto derivatives of Legendre basis
             {
 

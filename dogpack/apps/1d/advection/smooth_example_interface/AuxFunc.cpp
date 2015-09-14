@@ -20,6 +20,7 @@ void AuxFunc(const dTensor1& xpts,
         xmax=Max(xmax,x);
         {auxvals.set(i,1, 0.5e0 );}
         {auxvals.set(i,2, 0.0 );}
+        {auxvals.set(i,3, -1.0 );}
         //if(x>=0.5 && x<0.7+sqrt(2.0)/10.0)
         //if(x>=0.5 && x<0.7)
         //{auxvals.set(i,1,1.0);}
