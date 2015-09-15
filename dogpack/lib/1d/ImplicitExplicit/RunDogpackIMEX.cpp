@@ -52,7 +52,7 @@ void DogSolveUser_Interface(const dTensor2& node,
         double tstart, double tend,int nv, const int method[],
         double dtv[], const double cflv[],string outputdir);
 
-void L2Project_interface(int mopt, int istart, int iend,
+void L2Project_interface(int mopt, int run,int istart, int iend,
 	       const dTensor2& node,
 	       const dTensorBC3& qin, 
 	       const dTensorBC3& auxin,
@@ -185,10 +185,12 @@ void L2Project_interface(int mopt, int istart, int iend,
    if (method[6]>0)
     {  
        //L2Project(0,1-mbc,melems+mbc,node,qnew,aux,aux,&AuxFunc);  
-       L2Project_interface(0,1-mbc,melems+mbc,node,qnew,aux,qInew,auxI,dummy,0.0,interf2global,global2interf,dxi,aux,auxI,&AuxFunc);
+       L2Project_interface(0,0,1-mbc,melems+mbc,node,qnew,aux,qInew,auxI,dummy,0.0,interf2global,global2interf,dxi,aux,auxI,&AuxFunc);
+       L2Project_interface(0,1,1-mbc,melems+mbc,node,qnew,aux,qInew,auxI,dummy,0.0,interf2global,global2interf,dxi,aux,auxI,&AuxFunc);
     }
     
-    L2Project_interface(0,1-mbc,melems+mbc,node,qnew,aux,qInew,auxI,dummy,0.0,interf2global,global2interf,dxi,qnew,qInew,&QinitFunc);
+    L2Project_interface(0,0,1-mbc,melems+mbc,node,qnew,aux,qInew,auxI,dummy,0.0,interf2global,global2interf,dxi,qnew,qInew,&QinitFunc);
+    L2Project_interface(0,1,1-mbc,melems+mbc,node,qnew,aux,qInew,auxI,dummy,0.0,interf2global,global2interf,dxi,qnew,qInew,&QinitFunc);
     
     // Run AfterQinit to set any necessary variables
     AfterQinit(node,aux,qnew);

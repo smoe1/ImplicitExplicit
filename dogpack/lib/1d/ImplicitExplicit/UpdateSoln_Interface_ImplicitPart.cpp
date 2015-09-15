@@ -57,6 +57,9 @@ void UpdateSoln_Interface_ImplicitPart(int run,double alpha1,double alpha2,doubl
       vector<int> ipiv(dim);
       vector<double> rhs(dim);
 
+      vector<double> b1(dim);
+
+      vector<int> index(dim);
 
            for(int r=0; r < dim; r++) {  // set a to a random matrix, i to the identity
              for(int c=0; c < dim; c++) {
@@ -99,18 +102,30 @@ int test=0;
            int iint=int(global2interf.get(j));
            double dx=dxi.get(iint,1)+dxi.get(iint,2);
 
+
            double lam=(beta*dt/dx);
 
            double dxl=dxi.get(iint,1)/dx;
            double dxr=dxi.get(iint,2)/dx;
+
+
+          for(int k=1; k <= kmax; k++) {
+                index[0+k-1]=0;//qstar.get(j-2,m,k);
+                index[1*kmax+k-1]=1;//=qstar.get(j-1,m,k);
+                index[2*kmax+k-1]=2;//dxl*qIstar.get(1,iint,m,k);
+                index[3*kmax+k-1]=3;//dxr*qIstar.get(2,iint,m,k);
+                index[4*kmax+k-1]=4;//qstar.get(j+1,m,k);
+                index[5*kmax+k-1]=5;//qstar.get(j+2,m,k);
+          }
+
 
            for(int r=0; r < dim; r++) {  // set a to a random matrix, i to the identity
              for(int c=0; c < dim; c++) { 
                  a[r + c*dim] = -1.0*lam*Implicit.get(iint,1,c+1,r+1);
                  //a[r + c*dim] = -0.5*dt*Implicit.get(iint,1,c+1,r+1);
 		 //a1[r+ c*dim] = (dxi.get(iint,1)*(r==0)+dxi.get(iint,2)*(r==1))*1.0*(r==c)+0.5*dt*Implicit.get(iint,1,r+1,c+1);
-                 a1[r+ c*dim] = (1.0*(c==0 ||c==1|| c==4|| c==5)+dxl*(c==2)+dxr*(c==3))*1.0*(r==c)+1.0*lam*Implicit.get(iint,1,r+1,c+1);
-                 
+                 //a1[r+ c*dim] = 1.0*(c%2)+(c+1%2)*((1.0*(c==0 ||c==1|| c==4|| c==5)+dxl*(c==2)+dxr*(c==3))*1.0*(r==c)+1.0*lam*Implicit.get(iint,1,r+1,c+1));
+                 a1[c+ r*dim] = ((1.0*( (index[c]==0) || (index[c]==1) || (index[c]==4) || (index[c]==5))+dxl*(index[c]==2)+dxr*(index[c]==3))*1.0*(r==c)+1.0*lam*Implicit.get(iint,1,c+1,r+1));
              }
              
           }  
@@ -123,10 +138,21 @@ int test=0;
                 b[4*kmax+k-1]=qstar.get(j+1,m,k);
                 b[5*kmax+k-1]=qstar.get(j+2,m,k);
           }
+          
+          //for(int k=1; k <= 6*kmax; k++) {
+          //    printf("HERE WE GO %e \n",b[k-1]); 
+          //}
           /*
-          for(int k=1; k <= 6*kmax; k++) {
-              printf("HERE WE GO %e \n",b[k-1]); 
+          for(int k=1; k <= kmax; k++) {
+                b[0+k-1]=1.0*(k==1);//qstar.get(j-2,m,k);
+                b[1*kmax+k-1]=1.0*(k==1);//=qstar.get(j-1,m,k);
+                b[2*kmax+k-1]=dxl*1.0*(k==1);//dxl*qIstar.get(1,iint,m,k);
+                b[3*kmax+k-1]=dxr*1.0*(k==1);//dxr*qIstar.get(2,iint,m,k);
+                b[4*kmax+k-1]=1.0*(k==1);//qstar.get(j+1,m,k);
+                b[5*kmax+k-1]=1.0*(k==1);//qstar.get(j+2,m,k);
+
           }*/
+
 
           //b[k+4]=qstar.get(j+1,m,k)+0.5*(lam)*Lstar.get(j+1,m,k);         
         }
@@ -138,11 +164,48 @@ int test=0;
     else 
     {
 
+
+     /*for (int k1=1;k1<=6*kmax;k1++)
+     {b1[k1-1]=1.0*((k1-1)%2==0);}
+
+     
+     for (int k1=1;k1<=6*kmax;k1++)
+     {
+          double sum1=0.0;
+          double sum2=0.0;
+          for (int k2=1;k2<=6*kmax;k2++)
+          {
+               sum1=sum1+a1[(k1-1)+6*kmax*(k2-1)]*b1[k2-1];
+               sum2=sum2+a1[(k2-1)+6*kmax*(k1-1)]*b1[k2-1];
+          }
+          printf("for k1=%d, sum1=%e or sum2=%e should be %e\n",k1,sum1,sum2,b[k1-1]);
+      }*/
+
+
+
     //for(int k=1; k <= 6*kmax; k++)
     //{printf("RHS check %e \n",b[k-1]);}
     int iint=int(global2interf.get(j));
     int one=1;int info;
     dgesv_(&dim, &one, &*a1.begin(), &dim, &*ipiv.begin(), &*b.begin(), &dim, &info);
+
+     /*
+     for (int k1=1;k1<=6*kmax;k1++)
+     {
+
+      printf("Difference %e %e \n",b[k1-1],b1[k1-1]);
+     }*/
+
+     /*
+     for (int k1=1;k1<=6*kmax;k1++)
+     {
+          double sum1=0.0;
+          for (int k2=1;k2<=6*kmax;k2++)
+          {
+               sum1=sum1+a1[(k1-1)+kmax*(k2-1)]*b[k1-1];
+          }
+          printf("for k1=%d, sum1=%e \n",k1,sum1); 
+      }*/
 
      //if(abs(b[4])>0.0)
      //{printf("%d B=%e \n",info,b[4]);exit(1);}
@@ -152,11 +215,11 @@ int test=0;
 
 
           for(int k=1; k <= kmax; k++) {
-                if(abs(b[3*kmax+k-1])>1.0e-14 ||abs(b[4*kmax+k-1])>1.0e-14)
-                {
-                printf("HERE %d \n",j);
-                printf("HERE1! %d,%e \n",k,b[3*kmax+k-1]);
-                printf("HERE2! %d,%e \n",k,b[4*kmax+k-1]);}
+                //if(abs(b[0*kmax+k-1]-1.0*(k==1))>1.0e-14 ||abs(b[1*kmax+k-1]-1.0*(k==1))>1.0e-14)
+                //{
+                //printf("HERE %d %d \n",j,k);
+                //printf("HERE1! %d,%e \n",k,b[0*kmax+k-1]);
+                //printf("HERE2! %d,%e \n",k,b[1*kmax+k-1]);}
                 qnew.set(j-1,m,k,b[1*kmax+k-1]);
                 qInew.set(1,iint,m,k,b[2*kmax+k-1]);
                 qInew.set(2,iint,m,k,b[3*kmax+k-1]);

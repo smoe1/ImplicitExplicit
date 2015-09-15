@@ -24,7 +24,7 @@ void ConstructL_Interface_ImplicitPart(const int method[],
         dTensorBC1& smax)
 {
 
-void L2Project_interface(int mopt, int istart, int iend,
+void L2Project_interface(int mopt, int run,int istart, int iend,
                const dTensor2& node,
                const dTensorBC3& qin,
                const dTensorBC3& auxin,
@@ -249,7 +249,7 @@ void L2Project_interface(int mopt, int istart, int iend,
     if (method[1]>1)
     {  
        //L2Project(1,1-mbc,melems+mbc,node,q,aux,N,&FluxFunc);
-       L2Project_interface(1,1-mbc,melems+mbc,node,q,aux,qI,auxI,Implicit,0.0,interf2global,global2interf,dxi,N,NI,&FluxFunc);
+       L2Project_interface(1,1,1-mbc,melems+mbc,node,q,aux,qI,auxI,Implicit,1.0,interf2global,global2interf,dxi,N,NI,&FluxFunc);
     }
     else
     {

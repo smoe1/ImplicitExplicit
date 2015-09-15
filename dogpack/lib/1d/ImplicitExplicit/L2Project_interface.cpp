@@ -17,7 +17,7 @@
 //           dTensorBC3  Fout(1-mbc:mnodes+mbc,mlength,mpoints)
 // ---------------------------------------------------------------------
 
-void L2Project_interface(int mopt, int istart, int iend,
+void L2Project_interface(int mopt, int run,int istart, int iend,
 	       const dTensor2& node,
 	       const dTensorBC3& qin, 
 	       const dTensorBC3& auxin,
@@ -161,7 +161,7 @@ void L2Project_interface(int mopt, int istart, int iend,
 		  }
             }
         }
-          else
+          else if(run==1)
           {
 
 
@@ -191,8 +191,8 @@ void L2Project_interface(int mopt, int istart, int iend,
           //SampleBasisGrad_variable(lspts,lIphi_x,1.0);
           //SampleBasisGrad_variable(rspts,rIphi_x,1.0);           
 
-          SampleBasisGrad_variable(spts,lIphi_x,dxl);
-          SampleBasisGrad_variable(spts,rIphi_x,dxr);
+          SampleBasisGrad_variable(spts,lIphi_x,1.0);
+          SampleBasisGrad_variable(spts,rIphi_x,1.0);
 
 
 
@@ -286,6 +286,7 @@ void L2Project_interface(int mopt, int istart, int iend,
 
               double Ul=auxI.get(1,iint,1,1);
               double Ur=auxI.get(2,iint,1,1);
+              /*
 	      for (int m1=1; m1<=mlength; m1++)             
 		for (int m2=1; m2<=mpoints; m2++)
 		  {
@@ -298,18 +299,23 @@ void L2Project_interface(int mopt, int istart, int iend,
 		      }
 		    FI.set(1,iint,m1,m2, 0.5*tmpl );
 		    FI.set(2,iint,m1,m2, 0.5*tmpr );  
-		  }
+		  }*/
 
-              for (int m1=1; m1<=mlength; m1++)
                 for (int m2=1; m2<=mpoints; m2++)
                   for (int m3=1; m3<=mpoints; m3++)
                   {
+
+                    double tmponl = 0.0;
+                    double tmponr = 0.0;
+
                     double tmpIl = 0.0;
                     double tmpIr = 0.0;
                     for (int k=1; k<=mtmp; k++)
                       {
                         tmpIl += wgt.get(k)*Ul*phi.get(k,m3)*lIphi_x.get(k,m2);
                         tmpIr += wgt.get(k)*Ur*phi.get(k,m3)*rIphi_x.get(k,m2);
+                        tmponl += wgt.get(k)*Ul*phi.get(k,m3)*phi_x.get(k,m2);
+                        tmponr += wgt.get(k)*Ur*phi.get(k,m3)*phi_x.get(k,m2);
                       }
                     // Implicit.set(iint,m1,m2,m3, Implicit.get(iint,m1,m2,m3)-0.5*tmpIl );
                     //Implicit.set(iint,m1,kmax+m2,kmax+m3, Implicit.get(iint,m1,kmax+m2,kmax+m3)-0.5*tmpIr );
@@ -324,7 +330,7 @@ void L2Project_interface(int mopt, int istart, int iend,
                     //if(abs(tmpIl)>1.0e-12 || abs(tmpIr)>1.0e-12)
                     //{printf("HERE2!!!! %e %e \n",0.5*tmpIl,0.5*tmpIr);}
                   }
-
+                 /*
                  for(int m2=1;m2<=mpoints;m2++)
                  {
                   double tmp1=0.0;
@@ -343,7 +349,7 @@ void L2Project_interface(int mopt, int istart, int iend,
                   }
                   //printf("HERE left! %e \n",tmp1-FI.get(1,1,1,m2));
                   //printf("HERE right! %e \n",tmp2-FI.get(2,1,1,m2));
-                  } 
+                  }*/ 
             }
         }
 
