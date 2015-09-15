@@ -6,7 +6,7 @@
 #include "DogParams.h"
 #include "RKinfo.h"
 #include "DogSolver.h"
-//#include "ImplicitExplicit/classSDIRK.h"
+#include "ImplicitExplicit/classSDIRK.h"
 // If we want to use DogSolver from the top-level library, this needs to be
 // written:
 // #include "DogState1d.h"  

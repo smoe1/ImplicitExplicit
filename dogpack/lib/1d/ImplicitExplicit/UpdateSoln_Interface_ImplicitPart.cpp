@@ -1,7 +1,7 @@
 #include "tensors.h"
 #include "assert.h"
 #include <vector>
-//#include "classSDIRK.h"
+#include "classSDIRK.h"
 
 using namespace std;
 
