@@ -132,6 +132,7 @@ LIB1D_OBJECTS = \
   $(UpdateSoln_Ex).o \
   $(ConstructL_Imp).o \
   $(ConstructL_Ex).o \
+  $(LIB1D)/ImplicitExplicit/classSDIRK.o \
   $(DogSolveImplicit).o \
   $(Output).o \
   $(Output_Extra).o \
@@ -187,6 +188,7 @@ LIB1D_SOURCES = \
   $(UpdateSoln_Ex).cpp \
   $(ConstructL_Imp).cpp \
   $(ConstructL_Ex).cpp \
+  $(LIB1D)/ImplicitExplicit/classSDIRK.cpp \
   $(DogSolveImplicit).cpp \
   $(Output).cpp \
   $(Output_Extra).cpp \

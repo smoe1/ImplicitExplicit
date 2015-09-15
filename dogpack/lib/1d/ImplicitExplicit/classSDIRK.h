@@ -14,6 +14,10 @@ class SDIRK
     double coeff (int row, int column) {
       return matrix_[row][column];
     }
+
+    double get_time(int row) {
+      return times_[row];
+    }
       
     int n_rows() { return matrix_.size();    }
 
